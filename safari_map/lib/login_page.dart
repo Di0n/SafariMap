@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:safari_map/firebase/authentication.dart';
 
 /* Login page using Firebase authentication
 * */
 class LoginPage extends StatefulWidget {
+  LoginPage({this.auth, this.onSignedIn});
+
+  final FirebaseAuthentication auth;
+  final VoidCallback onSignedIn;
 
   @override
   State<StatefulWidget> createState() => new _LoginPageState();
@@ -41,12 +46,14 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
   }
 
+  // Progress animation @ login
   Widget _showCircularProgress() {
     if (_isLoading) {
       return Center(child: CircularProgressIndicator());
     } return Container(height: 0.0, width: 0.0);
   }
 
+  // Show logo
   Widget _showLogo() {
     return Hero(
       tag: 'hero',
@@ -115,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                 color: Colors.white
               ),
           ),
-          onPressed: (){},
+          onPressed: _validateAndSubmit,
         ),
       ),
     );
@@ -129,7 +136,9 @@ class _LoginPageState extends State<LoginPage> {
               fontSize: 18.0,
               fontWeight: FontWeight.w300)
       ),
-      onPressed: (){}, // TODO password screen
+      onPressed: (){
+        print("\nPressed password");
+      }, // TODO password screen
     );
   }
 
@@ -149,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
       );
     }
   }
-
+  // Show body content
   Widget _showBody() {
     return Container(
       padding: EdgeInsets.all(16.0),
@@ -167,6 +176,46 @@ class _LoginPageState extends State<LoginPage> {
           ],
         ),
       ));
+  }
+  // Validate and save form
+  bool _validateAndSave() {
+    final form = _formKey.currentState;
+
+    if (form.validate()) {
+      form.save();
+      return true;
+    }
+    return false;
+  }
+
+  // Validate and submit form
+  void _validateAndSubmit() async {
+    setState(() {
+      _errorMessage = "";
+      _isLoading = true;
+    });
+    if (!_validateAndSave()) return;
+
+    String userID = "";
+    try {
+      userID = await widget.auth.signIn(_email, _password);
+      print('Signed in: $userID');
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (userID.length > 0 && userID != null) {
+        widget.onSignedIn();
+      }
+    } catch (e) {
+      print('Error: $e');
+      setState(() {
+        _isLoading = false;
+        // iOS handles the error message differently
+        _errorMessage = _isIos ? e.details : e.message;
+      });
+    }
   }
 
 }
