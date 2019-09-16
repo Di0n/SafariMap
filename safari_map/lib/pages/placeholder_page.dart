@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:safari_map/firebase/authentication.dart';
 import 'package:safari_map/utils/resource_strings.dart';
-import 'package:safari_map/utils/text_resource_manager.dart';
 
 
 class PlaceHolderPage extends StatefulWidget {
@@ -30,7 +29,7 @@ class _PlaceHolderState extends State<PlaceHolderPage> {
             ),
           ),
           body: Center(
-            child: Text("This is a place holder\nUser: $widget.userID"),
+            child: Text("This is a place holder\nUser: ${widget.userID}"),
           ),
         ));
   }
