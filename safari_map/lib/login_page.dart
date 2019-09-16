@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safari_map/firebase/authentication.dart';
+import 'package:safari_map/utils/resource_strings.dart';
+import 'package:safari_map/utils/text_resource_manager.dart';
 
 /* Login page using Firebase authentication
 * */
@@ -28,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
     _isIos = Theme.of(context).platform == TargetPlatform.iOS;
     return Scaffold(
       appBar: AppBar(
-        title: Text("Login"),
+        title: Text(ResourceStrings.LOGIN_TITLE),
       ),
       body: Stack(
         children: <Widget>[
@@ -76,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
         keyboardType: TextInputType.emailAddress,
         autofocus: false,
         decoration: InputDecoration(
-          hintText: 'Email',
+          hintText: ResourceStrings.LOGIN_EMAIL,
           icon: Icon(
             Icons.mail,
             color: Colors.grey,
@@ -95,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
         maxLines: 1,
         autofocus:  false,
         decoration: InputDecoration(
-          hintText: 'Password',
+          hintText: ResourceStrings.LOGIN_PASSWORD,
           icon: Icon(
             Icons.lock,
             color: Colors.grey,
@@ -131,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _showForgotPasswordButton() {
     return FlatButton(
       child: Text(
-          'Forgot password',
+          ResourceStrings.LOGIN_FORGOT_BUTTON,
           style: TextStyle(
               fontSize: 18.0,
               fontWeight: FontWeight.w300)
