@@ -16,11 +16,54 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
 
-  Completer<GoogleMapController> _controller = Completer();
-
   static const LatLng _center = LatLng(51.585370, 4.790010);
+  static final CameraPosition _startingPosition = CameraPosition(
+    target: _center,
+    zoom: 11.0
+  );
+  final Completer<GoogleMapController> _controller = Completer();
 
-  
+  GoogleMap getMap() {
+    return GoogleMap(
+      onMapCreated: _onMapCreated,
+      mapType: MapType.satellite,
+      myLocationEnabled: true,
+      myLocationButtonEnabled: false,
+      trafficEnabled: false,
+      scrollGesturesEnabled: true,
+      rotateGesturesEnabled: true,
+      zoomGesturesEnabled: true,
+      initialCameraPosition: _startingPosition
+    );
+  }
+
+  Widget _fixedDroneButton() {
+    //return FloatingActionButton.extended(onPressed: _onFixedDronePress, label: Text("Test"), icon: Icon(Icons.airplanemode_active));
+    return FloatingActionButton(
+      onPressed: _onFixedDronePressed,
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+      backgroundColor: Colors.blue,
+      child: const Icon(Icons.airplanemode_active, size: 36.0)
+    );
+  }
+
+  Widget _quadDroneButton() {
+    return FloatingActionButton(
+      onPressed: _onQuadDronePressed,
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+      backgroundColor: Colors.blue,
+      child: const Icon(Icons.toys, size: 36.0),
+    );
+  }
+
+  Widget _myLocationButton() {
+    return FloatingActionButton(
+      onPressed: _onMyLocationPressed,
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+      backgroundColor: Colors.blue,
+      child: const Icon(Icons.my_location, size: 36.0)
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -31,12 +74,30 @@ class _MapPageState extends State<MapPage> {
             "Map",
           )
         ),
-        body: GoogleMap(
-          onMapCreated: _onMapCreated,
-          initialCameraPosition: CameraPosition(
-            target: _center,
-            zoom: 11.0,
-          ),
+        body: Stack(
+          children: <Widget>[
+            getMap(),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Align(
+                alignment: Alignment.topRight,
+                child: Column(
+                  children: <Widget>[
+                    _fixedDroneButton(),
+                    SizedBox(height: 16.0),
+                    _quadDroneButton()
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: _myLocationButton(),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -45,6 +106,20 @@ class _MapPageState extends State<MapPage> {
   void _onMapCreated(GoogleMapController controller) {
     _controller.complete(controller);
   }
+
+  Future<void> _onFixedDronePressed() async {
+    // TODO toggle fixed drone markers
+  }
+
+  Future<void> _onQuadDronePressed() async {
+    // TODO toggle quad drone markers
+  }
+
+  Future<void> _onMyLocationPressed() async {
+    final GoogleMapController controller = await _controller.future;
+  }
+
+
   // On back press callback
   Future<bool> _onBackPressed() async {
     bool val = await showDialog(
