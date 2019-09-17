@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:safari_map/firebase/authentication.dart';
 import 'package:safari_map/utils/resource_strings.dart';
 import 'package:safari_map/utils/text_resource_manager.dart';
@@ -224,6 +225,9 @@ class _LoginPageState extends State<LoginPage> {
 
   // Validate and submit form
   void _validateAndSubmit() async {
+    // Dismiss the keyboard (otherwise google maps will crash) https://github.com/flutter/flutter/issues/31152
+    SystemChannels.textInput.invokeMethod("TextInput.hide");
+
     setState(() {
       _errorMessage = "";
       _isLoading = true;

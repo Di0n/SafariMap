@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safari_map/login_page.dart';
 import 'package:safari_map/firebase/authentication.dart';
+import 'package:safari_map/pages/map_page.dart';
 import 'package:safari_map/pages/placeholder_page.dart';
 import 'package:safari_map/utils/text_resource_manager.dart';
 
@@ -77,12 +78,16 @@ class _RootPageState extends State<RootPage> {
         break;
 
       case AuthState.LOGGED_IN:
-        if (_userID.length > 0 && _userID != null) {
-          return PlaceHolderPage(
+        if (_userID != null && _userID.length > 0) {
+          return MapPage(
             auth: widget.auth,
-            userID: _userID,
             onSignedOut: _onSignedOut,
           );
+//          return PlaceHolderPage(
+//            auth: widget.auth,
+//            userID: _userID,
+//            onSignedOut: _onSignedOut,
+//          );
         } else return _buildLoadingScreen();
         break;
       default:
