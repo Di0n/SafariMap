@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:safari_map/firebase/authentication.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 
 class MapPage extends StatefulWidget {
   MapPage({this.auth, this.onSignedOut});
@@ -15,11 +16,12 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-
-  static const LatLng _center = LatLng(51.585370, 4.790010);
+//
+  static const LatLng _center = LatLng(-24.475740, 31.390870);
+  static const double _defaultZoom = 17.0;
   static final CameraPosition _startingPosition = CameraPosition(
     target: _center,
-    zoom: 11.0
+    zoom: _defaultZoom
   );
   final Completer<GoogleMapController> _controller = Completer();
 
@@ -117,6 +119,33 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> _onMyLocationPressed() async {
     final GoogleMapController controller = await _controller.future;
+    print("Future");
+    LatLng loc;
+
+    try {
+      loc = await _getCurrentUserLocation();
+      print("User loc");
+
+    } on Exception {
+      return;
+    }
+
+    controller.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+        bearing: 0,
+        target: loc,
+        zoom: _defaultZoom,
+      )
+    ));
+    print("Zoom");
+
+  }
+
+  Future<LatLng> _getCurrentUserLocation() async {
+    LocationData currentLocation;
+    Location location = Location();
+    currentLocation = await location.getLocation();
+    return LatLng(currentLocation.latitude, currentLocation.longitude);
   }
 
 

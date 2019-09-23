@@ -6,4 +6,5 @@ class ResourceStrings {
   static final String LOGIN_LBUTTON = "Login";
   static final String LOGIN_FORGOT_BUTTON = "Forgot password";
 
+  // Map page
 }
