@@ -34,7 +34,7 @@ class FirebaseAuthentication implements Auth {
   }
 
   Future<void> signOut() async {
-    return _firebaseAuth.signOut();
+    return await _firebaseAuth.signOut();
   }
 
   Future<bool> isEmailVerified() async {

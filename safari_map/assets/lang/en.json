@@ -1,4 +1,9 @@
 {
-  "first_string" : "Hello! This is the first message.",
-  "second_string" : "Second message"
+  "login_page": {
+    "title" : "Login",
+    "email" : "Email",
+    "password" : "Password",
+    "login_button" : "Login",
+    "forgot_pass_button" : "Forgot password"
+  }
 }
