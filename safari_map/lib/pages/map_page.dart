@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:safari_map/firebase/authentication.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:safari_map/data/heatspot.dart';
+import 'package:safari_map/firebase/authentication.dart';
+import 'package:safari_map/firebase/database.dart';
 
 class MapPage extends StatefulWidget {
   MapPage({this.auth, this.onSignedOut});
@@ -111,6 +114,14 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> _onFixedDronePressed() async {
     // TODO toggle fixed drone markers
+    Database database = FirestoreHelper();
+    List<Heatspot> heatspots = await database.getHeatspots(DroneType.fixedWing);
+    for (int i = 0; i < heatspots.length; i++) {
+      Heatspot hs = heatspots[i];
+      if (hs != null)
+        print("ID: ${hs.id}");
+    }
+
   }
 
   Future<void> _onQuadDronePressed() async {
