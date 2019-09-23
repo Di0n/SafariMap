@@ -28,6 +28,10 @@ class _MapPageState extends State<MapPage> {
   );
   final Completer<GoogleMapController> _controller = Completer();
 
+  final Set<Marker> _markers = Set();
+  final Database database = FirestoreHelper();
+
+
   GoogleMap getMap() {
     return GoogleMap(
       onMapCreated: _onMapCreated,
@@ -38,7 +42,8 @@ class _MapPageState extends State<MapPage> {
       scrollGesturesEnabled: true,
       rotateGesturesEnabled: true,
       zoomGesturesEnabled: true,
-      initialCameraPosition: _startingPosition
+      initialCameraPosition: _startingPosition,
+      markers: _markers,
     );
   }
 
@@ -69,6 +74,20 @@ class _MapPageState extends State<MapPage> {
       child: const Icon(Icons.my_location, size: 36.0)
     );
   }
+
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onBuilt(context));
+  }
+  // Called after widget is build
+  Future<void> _onBuilt(BuildContext context) async {
+    print("onBuilt");
+    await _addMarkersToMap();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -108,19 +127,42 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  Marker _createMarker(Heatspot hs) {
+    return Marker(
+      markerId: MarkerId(hs.id),
+      infoWindow: InfoWindow(
+          title: hs.id,
+          snippet: hs.description),
+      position: LatLng(hs.location.latitude, hs.location.longitude),
+    );
+  }
+
+  // Add markers to the map
+  Future<void> _addMarkersToMap() async {
+    // Retrieve heatspots from database
+    List<Heatspot> heatspots = await database.getHeatspots(DroneType.fixedWing);
+    // Create set for storage
+    Set<Marker> markers = Set();
+    // Loop through the loaded heatspots
+    for (int i = 0; i < heatspots.length; i++) {
+      Heatspot hs = heatspots[i];
+      if (hs != null) {
+        // Create the marker
+        Marker marker = _createMarker(hs);
+        markers.add(marker);
+      }
+    }
+    // Add markers on map and rebuild widget
+    setState(() {
+      _markers.addAll(markers);
+    });
+  }
   void _onMapCreated(GoogleMapController controller) {
     _controller.complete(controller);
   }
 
   Future<void> _onFixedDronePressed() async {
     // TODO toggle fixed drone markers
-    Database database = FirestoreHelper();
-    List<Heatspot> heatspots = await database.getHeatspots(DroneType.fixedWing);
-    for (int i = 0; i < heatspots.length; i++) {
-      Heatspot hs = heatspots[i];
-      if (hs != null)
-        print("ID: ${hs.id}");
-    }
 
   }
 
@@ -128,6 +170,7 @@ class _MapPageState extends State<MapPage> {
     // TODO toggle quad drone markers
   }
 
+  // Callback on my location pressed
   Future<void> _onMyLocationPressed() async {
     final GoogleMapController controller = await _controller.future;
     print("Future");
@@ -152,6 +195,7 @@ class _MapPageState extends State<MapPage> {
 
   }
 
+  // Gets the current location of the user
   Future<LatLng> _getCurrentUserLocation() async {
     LocationData currentLocation;
     Location location = Location();
