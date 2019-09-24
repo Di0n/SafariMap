@@ -105,7 +105,10 @@ class _MapPageState extends State<MapPage> {
         appBar: AppBar(
           title: Text(
             "Map",
-          )
+          ),
+          actions: <Widget>[
+            IconButton(icon: Icon(Icons.more_vert), onPressed: (){}), // TODO popupmenu
+          ],
         ),
         body: Stack(
           children: <Widget>[
@@ -179,9 +182,9 @@ class _MapPageState extends State<MapPage> {
   // Add markers to the map
   Future<void> _addMarkersToMap() async {
     // Retrieve heatspots from database
-    List<Heatspot> heatspots = await database.getHeatspots(DroneType.fixedWing);
-    var temp = await database.getHeatspots(DroneType.multiRotor);
-    heatspots.addAll(temp);
+//    List<Heatspot> heatspots = await database.getHeatspots(DroneType.fixedWing);
+//    var temp = await database.getHeatspots(DroneType.multiRotor);
+    List<Heatspot> heatspots = await database.getHeatspots();
     // Create set for storage
     Set<Marker> markers = Set();
     // Loop through the loaded heatspots
