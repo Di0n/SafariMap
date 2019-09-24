@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:safari_map/data/heatspot.dart';
 import 'package:safari_map/firebase/authentication.dart';
 import 'package:safari_map/firebase/database.dart';
+import 'package:safari_map/data/enums.dart';
 
 class MapPage extends StatefulWidget {
   MapPage({this.auth, this.onSignedOut});
@@ -20,15 +21,23 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
 //
-  static const LatLng _center = LatLng(-24.475740, 31.390870);
+  //static const LatLng _center = LatLng(-24.475740, 31.390870);
+  static const LatLng _center = LatLng(51.657871, 4.812610);
+
   static const double _defaultZoom = 17.0;
   static final CameraPosition _startingPosition = CameraPosition(
     target: _center,
     zoom: _defaultZoom
   );
+
   final Completer<GoogleMapController> _controller = Completer();
 
+  // Markers visible on map
   final Set<Marker> _markers = Set();
+  // Marker ID's with state objects (heatspot)
+  final Set<Marker> _allMarkers = Set();
+  final Map<MarkerId, Heatspot> _markerHeatspots = Map();
+  // Database for retrieval of data
   final Database database = FirestoreHelper();
 
 
@@ -81,7 +90,7 @@ class _MapPageState extends State<MapPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _onBuilt(context));
   }
-  // Called after widget is build
+  // Called after widget is build for the first time
   Future<void> _onBuilt(BuildContext context) async {
     print("onBuilt");
     await _addMarkersToMap();
@@ -128,19 +137,51 @@ class _MapPageState extends State<MapPage> {
   }
 
   Marker _createMarker(Heatspot hs) {
+    final MarkerId mID = MarkerId(hs.id);
     return Marker(
-      markerId: MarkerId(hs.id),
+      markerId: mID,
       infoWindow: InfoWindow(
           title: hs.id,
-          snippet: hs.description),
+          snippet: "Made by: ${hs.drone.toString()}\n\n${hs.description}"),
       position: LatLng(hs.location.latitude, hs.location.longitude),
+      onTap: () {
+        _onMarkerTap(mID);
+      },
+      visible: true,
     );
   }
 
+  bool _fixedWingEnabled = true;
+  bool _multiRotorEnabled = true;
+  void _toggleDroneTypeMap(final DroneType type) {
+    if (type == DroneType.fixedWing)
+      _fixedWingEnabled = !_fixedWingEnabled;
+    else
+      _multiRotorEnabled = !_multiRotorEnabled;
+
+    final bool val = type == DroneType.fixedWing ? _fixedWingEnabled : _multiRotorEnabled;
+    setState(() {
+      if (!val) {
+        _markers.removeWhere((m) {
+          final Heatspot hs = _markerHeatspots[m.markerId];
+          return hs.drone == type;
+        });
+      }
+      else {
+        var set = _allMarkers.where((m) {
+          final Heatspot hs = _markerHeatspots[m.markerId];
+          return hs.drone == type;
+        }).toSet();
+        _markers.addAll(set);
+      }
+    });
+  }
   // Add markers to the map
   Future<void> _addMarkersToMap() async {
     // Retrieve heatspots from database
     List<Heatspot> heatspots = await database.getHeatspots(DroneType.fixedWing);
+    var temp = await database.getHeatspots(DroneType.multiRotor);
+    heatspots.addAll(temp);
     // Create set for storage
     Set<Marker> markers = Set();
     // Loop through the loaded heatspots
@@ -150,36 +191,79 @@ class _MapPageState extends State<MapPage> {
         // Create the marker
         Marker marker = _createMarker(hs);
         markers.add(marker);
+        _markerHeatspots.putIfAbsent(marker.markerId, () => hs);
       }
     }
     // Add markers on map and rebuild widget
     setState(() {
       _markers.addAll(markers);
+      _allMarkers.addAll(markers);
     });
   }
   void _onMapCreated(GoogleMapController controller) {
     _controller.complete(controller);
   }
 
-  Future<void> _onFixedDronePressed() async {
-    // TODO toggle fixed drone markers
 
+  Future<void> _onFixedDronePressed() {
+    _toggleDroneTypeMap(DroneType.fixedWing);
+//    _fixedWingEnabled = !_fixedWingEnabled;
+//    setState(() {
+//      if (!_fixedWingEnabled) {
+//        _markers.removeWhere((m) {
+//          final Heatspot hs = _markerHeatspots[m.markerId];
+//          return hs.drone == DroneType.fixedWing;
+//        });
+//      }
+//      else {
+//        var set = _allMarkers.where((m) {
+//          final Heatspot hs = _markerHeatspots[m.markerId];
+//          return hs.drone == DroneType.fixedWing;
+//        }).toSet();
+//        _markers.addAll(set);
+//      }
+//    });
   }
 
-  Future<void> _onQuadDronePressed() async {
-    // TODO toggle quad drone markers
+  // Aka Multi rotor
+  Future<void> _onQuadDronePressed() {
+    _toggleDroneTypeMap(DroneType.multiRotor);
+//    _multiRotorEnabled = !_multiRotorEnabled;
+//    setState(() {
+//      if (!_multiRotorEnabled) {
+//        _markers.removeWhere((m) {
+//          final Heatspot hs = _markerHeatspots[m.markerId];
+//          return hs.drone == DroneType.multiRotor;
+//        });
+//      }
+//      else {
+//        var set = _allMarkers.where((m) {
+//          final Heatspot hs = _markerHeatspots[m.markerId];
+//          return hs.drone == DroneType.multiRotor;
+//        }).toSet();
+//        _markers.addAll(set);
+//      }
+//    });
+  }
+
+  Future<void> _onMarkerTap(MarkerId id) async {
+    final Marker marker = _markers.firstWhere((m) => m.markerId == id);
+    if (marker == null) {
+      // TODO marker was null
+      print("Marker is null");
+      return;
+    }
+    print("Marker tapped and found");
   }
 
   // Callback on my location pressed
+  // TODO replace with geolocation for faster result
   Future<void> _onMyLocationPressed() async {
     final GoogleMapController controller = await _controller.future;
-    print("Future");
     LatLng loc;
 
     try {
       loc = await _getCurrentUserLocation();
-      print("User loc");
-
     } on Exception {
       return;
     }
@@ -191,8 +275,6 @@ class _MapPageState extends State<MapPage> {
         zoom: _defaultZoom,
       )
     ));
-    print("Zoom");
-
   }
 
   // Gets the current location of the user

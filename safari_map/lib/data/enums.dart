@@ -1,0 +1,4 @@
+enum DroneType {
+  fixedWing,
+  multiRotor
+}

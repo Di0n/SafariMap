@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:core';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:safari_map/data/heatspot.dart';
+import 'package:safari_map/data/enums.dart';
 
-enum DroneType { fixedWing, multiRotor }
 abstract class Database {
   static const String droneCollection = "drones";
   static const String fixedWingDocument = "fixed-wing";
