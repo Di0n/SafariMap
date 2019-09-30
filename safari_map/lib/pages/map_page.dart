@@ -24,8 +24,9 @@ class _MapPageState extends State<MapPage> {
 //
   //static const LatLng _center = LatLng(-24.475740, 31.390870);
   static const LatLng _center = LatLng(51.657871, 4.812610);
-
   static const double _defaultZoom = 17.0;
+  static const Size fixedWingIconSize = Size(40, 40);
+  static const Size multiRotorIconSize = Size(40, 40);
   static final CameraPosition _startingPosition = CameraPosition(
     target: _center,
     zoom: _defaultZoom
@@ -40,6 +41,9 @@ class _MapPageState extends State<MapPage> {
   final Map<MarkerId, Heatspot> _markerHeatspots = Map();
   // Database for retrieval of data
   final Database database = FirestoreHelper();
+
+  BitmapDescriptor fixedwingIcon;
+  BitmapDescriptor multirotorIcon;
 
 
   GoogleMap getMap() {
@@ -74,7 +78,7 @@ class _MapPageState extends State<MapPage> {
       materialTapTargetSize: MaterialTapTargetSize.padded,
       backgroundColor: Colors.blue,
       child: const Icon(Icons.toys, size: 36.0),
-      heroTag: "multi_copter_fab",
+      heroTag: "multi_rotor_fab",
     );
   }
 
@@ -89,14 +93,23 @@ class _MapPageState extends State<MapPage> {
   }
 
 
+
   @override
   void initState() {
     super.initState();
+    BitmapDescriptor.fromAssetImage(ImageConfiguration(size: fixedWingIconSize), "assets/icons/fixed_wing-icon.png").then((onValue) {
+      fixedwingIcon = onValue;
+    });
+    BitmapDescriptor.fromAssetImage(ImageConfiguration(size: multiRotorIconSize), "assets/icons/multi_rotor-icon.png").then((onValue) {
+      multirotorIcon = onValue;
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _onBuilt(context));
   }
   // Called after widget is build for the first time
   Future<void> _onBuilt(BuildContext context) async {
     print("onBuilt");
+
     await _addMarkersToMap();
   }
 
@@ -147,10 +160,11 @@ class _MapPageState extends State<MapPage> {
     final MarkerId mID = MarkerId(hs.id);
     return Marker(
       markerId: mID,
-      infoWindow: InfoWindow(
+      /*infoWindow: InfoWindow(
           title: hs.id,
-          snippet: "Made by: ${hs.drone.toString()}\n\n${hs.description}"),
+          snippet: "Made by: ${hs.drone.toString()}\n\n${hs.description}"),*/
       position: LatLng(hs.location.latitude, hs.location.longitude),
+      icon: (hs.drone == DroneType.fixedWing) ? fixedwingIcon : multirotorIcon,
       onTap: () {
         _onMarkerTap(mID);
       },
