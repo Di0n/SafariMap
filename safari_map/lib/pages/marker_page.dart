@@ -1,7 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:safari_map/data/heatspot.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:safari_map/firebase/authentication.dart';
 import 'package:carousel_pro/carousel_pro.dart';
 
@@ -13,12 +13,22 @@ import 'package:carousel_pro/carousel_pro.dart';
 
 class MarkerPage extends StatefulWidget {
   final Heatspot hs;
-  List<NetworkImage> images;
+  List<CachedNetworkImage> images;
 
   MarkerPage(this.hs) {
     images = List();
     for (int i = 0; i < hs.images.length; i++) {
-      images.add(NetworkImage(hs.images[i]));
+      images.add(CachedNetworkImage(imageUrl: hs.images[i],
+        imageBuilder: (context, imageProvider) => Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: imageProvider,
+              fit: BoxFit.cover,
+            )
+          ),
+        ),
+        placeholder: (context, url) => CircularProgressIndicator(),
+        errorWidget: (context, url, error) => Icon(Icons.error)));
     }
   }
 
