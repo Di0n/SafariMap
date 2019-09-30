@@ -7,6 +7,7 @@ import 'package:safari_map/data/heatspot.dart';
 import 'package:safari_map/firebase/authentication.dart';
 import 'package:safari_map/firebase/database.dart';
 import 'package:safari_map/data/enums.dart';
+import 'package:safari_map/pages/marker_page.dart';
 
 class MapPage extends StatefulWidget {
   MapPage({this.auth, this.onSignedOut});
@@ -62,7 +63,8 @@ class _MapPageState extends State<MapPage> {
       onPressed: _onFixedDronePressed,
       materialTapTargetSize: MaterialTapTargetSize.padded,
       backgroundColor: Colors.blue,
-      child: const Icon(Icons.airplanemode_active, size: 36.0)
+      child: const Icon(Icons.airplanemode_active, size: 36.0),
+      heroTag: "fixed_drone_fab",
     );
   }
 
@@ -72,6 +74,7 @@ class _MapPageState extends State<MapPage> {
       materialTapTargetSize: MaterialTapTargetSize.padded,
       backgroundColor: Colors.blue,
       child: const Icon(Icons.toys, size: 36.0),
+      heroTag: "multi_copter_fab",
     );
   }
 
@@ -80,7 +83,8 @@ class _MapPageState extends State<MapPage> {
       onPressed: _onMyLocationPressed,
       materialTapTargetSize: MaterialTapTargetSize.padded,
       backgroundColor: Colors.blue,
-      child: const Icon(Icons.my_location, size: 36.0)
+      child: const Icon(Icons.my_location, size: 36.0),
+      heroTag: "my_location_fab",
     );
   }
 
@@ -257,6 +261,8 @@ class _MapPageState extends State<MapPage> {
       return;
     }
     print("Marker tapped and found");
+    final heatspot = _markerHeatspots[marker.markerId];
+    Navigator.push(context, MaterialPageRoute(builder: (context) => MarkerPage(hs: heatspot)),);
   }
 
   // Callback on my location pressed
