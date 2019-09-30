@@ -262,7 +262,7 @@ class _MapPageState extends State<MapPage> {
     }
     print("Marker tapped and found");
     final heatspot = _markerHeatspots[marker.markerId];
-    Navigator.push(context, MaterialPageRoute(builder: (context) => MarkerPage(hs: heatspot)),);
+    Navigator.push(context, MaterialPageRoute(builder: (context) => MarkerPage(heatspot)),);
   }
 
   // Callback on my location pressed

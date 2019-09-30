@@ -12,21 +12,21 @@ import 'package:carousel_pro/carousel_pro.dart';
 // https://medium.com/flutter-community/flutter-layout-cheat-sheet-5363348d037e
 
 class MarkerPage extends StatefulWidget {
-  MarkerPage({this.hs});
-
   final Heatspot hs;
+  List<NetworkImage> images;
+
+  MarkerPage(this.hs) {
+    images = List();
+    for (int i = 0; i < hs.images.length; i++) {
+      images.add(NetworkImage(hs.images[i]));
+    }
+  }
 
   @override
   State<StatefulWidget> createState() => _MarkerPageState();
 }
 
 class _MarkerPageState extends State<MarkerPage> {
-
-  static final List<String> imgList = [
-    "https://www.kids-world-travel-guide.com/images/xsouthafricanlion_andrewpauldeer_ssk-2.jpg.pagespeed.ic.CMraoKsADq.jpg",
-    "https://r7h9p6s7.stackpathcdn.com/wp-content/uploads/2002/04/wildlife-dec16.jpg"
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,10 +37,7 @@ class _MarkerPageState extends State<MarkerPage> {
            height: 200.0,
            child: Center(
              child: Carousel(
-               images: [
-                 NetworkImage("https://www.kids-world-travel-guide.com/images/xsouthafricanlion_andrewpauldeer_ssk-2.jpg.pagespeed.ic.CMraoKsADq.jpg"),
-                 NetworkImage("https://r7h9p6s7.stackpathcdn.com/wp-content/uploads/2002/04/wildlife-dec16.jpg")
-               ],
+               images: widget.images,
                dotSize: 6.0,
                dotSpacing: 15.0,
                dotColor: Colors.lightGreenAccent,
