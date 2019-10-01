@@ -30,6 +30,9 @@ dependencies:
   google_maps_flutter: ^0.5.21+2
   location: ^2.3.5
   cloud_firestore: ^0.12.9+4
+  carousel_pro: ^1.0.0
+  cached_network_image: ^1.1.1
+
 
 dev_dependencies:
   flutter_test:
@@ -50,6 +53,8 @@ flutter:
   assets:
     - assets/lang/en.json
     - assets/icons/flutter-icon.png
+    - assets/icons/fixed_wing-icon.png
+    - assets/icons/multi_rotor-icon.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

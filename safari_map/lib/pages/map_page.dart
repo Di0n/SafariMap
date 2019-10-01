@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,6 +10,7 @@ import 'package:safari_map/data/heatspot.dart';
 import 'package:safari_map/firebase/authentication.dart';
 import 'package:safari_map/firebase/database.dart';
 import 'package:safari_map/data/enums.dart';
+import 'package:safari_map/pages/marker_page.dart';
 
 class MapPage extends StatefulWidget {
   MapPage({this.auth, this.onSignedOut});
@@ -23,8 +27,9 @@ class _MapPageState extends State<MapPage> {
 //
   //static const LatLng _center = LatLng(-24.475740, 31.390870);
   static const LatLng _center = LatLng(51.657871, 4.812610);
-
   static const double _defaultZoom = 17.0;
+  static const Size fixedWingIconSize = Size(40, 40);
+  static const Size multiRotorIconSize = Size(40, 40);
   static final CameraPosition _startingPosition = CameraPosition(
     target: _center,
     zoom: _defaultZoom
@@ -40,6 +45,9 @@ class _MapPageState extends State<MapPage> {
   // Database for retrieval of data
   final Database database = FirestoreHelper();
 
+  BitmapDescriptor fixedwingIcon;
+  BitmapDescriptor multirotorIcon;
+  BitmapDescriptor testIcon;
 
   GoogleMap getMap() {
     return GoogleMap(
@@ -62,7 +70,8 @@ class _MapPageState extends State<MapPage> {
       onPressed: _onFixedDronePressed,
       materialTapTargetSize: MaterialTapTargetSize.padded,
       backgroundColor: Colors.blue,
-      child: const Icon(Icons.airplanemode_active, size: 36.0)
+      child: const Icon(Icons.airplanemode_active, size: 36.0),
+      heroTag: "fixed_drone_fab",
     );
   }
 
@@ -72,6 +81,7 @@ class _MapPageState extends State<MapPage> {
       materialTapTargetSize: MaterialTapTargetSize.padded,
       backgroundColor: Colors.blue,
       child: const Icon(Icons.toys, size: 36.0),
+      heroTag: "multi_rotor_fab",
     );
   }
 
@@ -80,19 +90,33 @@ class _MapPageState extends State<MapPage> {
       onPressed: _onMyLocationPressed,
       materialTapTargetSize: MaterialTapTargetSize.padded,
       backgroundColor: Colors.blue,
-      child: const Icon(Icons.my_location, size: 36.0)
+      child: const Icon(Icons.my_location, size: 36.0),
+      heroTag: "my_location_fab",
     );
   }
+
 
 
   @override
   void initState() {
     super.initState();
+    BitmapDescriptor.fromAssetImage(ImageConfiguration(size: fixedWingIconSize), "assets/icons/fixed_wing-icon.png").then((onValue) {
+      fixedwingIcon = onValue;
+    });
+    BitmapDescriptor.fromAssetImage(ImageConfiguration(size: multiRotorIconSize), "assets/icons/multi_rotor-icon.png").then((onValue) {
+      multirotorIcon = onValue;
+    });
+    
+    _createMarkerDisplay("").then((onValue) {
+      testIcon = onValue;
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _onBuilt(context));
   }
   // Called after widget is build for the first time
   Future<void> _onBuilt(BuildContext context) async {
     print("onBuilt");
+
     await _addMarkersToMap();
   }
 
@@ -139,14 +163,15 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Marker _createMarker(Heatspot hs) {
+  Future<Marker> _createMarker(Heatspot hs) async {
     final MarkerId mID = MarkerId(hs.id);
     return Marker(
       markerId: mID,
-      infoWindow: InfoWindow(
+      /*infoWindow: InfoWindow(
           title: hs.id,
-          snippet: "Made by: ${hs.drone.toString()}\n\n${hs.description}"),
+          snippet: "Made by: ${hs.drone.toString()}\n\n${hs.description}"),*/
       position: LatLng(hs.location.latitude, hs.location.longitude),
+      icon: await _createMarkerDisplay("Tiger 70%"),//(hs.drone == DroneType.fixedWing) ? fixedwingIcon : multirotorIcon,
       onTap: () {
         _onMarkerTap(mID);
       },
@@ -192,7 +217,7 @@ class _MapPageState extends State<MapPage> {
       Heatspot hs = heatspots[i];
       if (hs != null) {
         // Create the marker
-        Marker marker = _createMarker(hs);
+        Marker marker = await _createMarker(hs);
         markers.add(marker);
         _markerHeatspots.putIfAbsent(marker.markerId, () => hs);
       }
@@ -257,6 +282,8 @@ class _MapPageState extends State<MapPage> {
       return;
     }
     print("Marker tapped and found");
+    final heatspot = _markerHeatspots[marker.markerId];
+    Navigator.push(context, MaterialPageRoute(builder: (context) => MarkerPage(heatspot)),);
   }
 
   // Callback on my location pressed
@@ -334,5 +361,41 @@ class _MapPageState extends State<MapPage> {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<BitmapDescriptor> _createMarkerDisplay(String text) async {
+    PictureRecorder recorder = new PictureRecorder();
+    Canvas c = new Canvas(recorder);
+
+    // Do stuff
+    final icon = Icons.airplanemode_active;
+    TextSpan span = new TextSpan(style: new TextStyle(
+      color: Colors.white,
+      fontSize: 40.0,
+      fontWeight: FontWeight.bold,
+    ), text: text);
+
+    TextPainter tp = new TextPainter(
+      text: span,
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    );
+    tp.layout();
+    tp.paint(c, new Offset(20.0, 10.0));
+
+    TextPainter tpIcon = TextPainter(textDirection: TextDirection.rtl);
+    tpIcon.text = TextSpan(text: String.fromCharCode(icon.codePoint),
+      style: TextStyle(fontSize: 120.0, fontFamily: icon.fontFamily));
+    tpIcon.layout();
+    tpIcon.paint(c, Offset((tp.width.toInt()) / 2, 20));
+    //var i = AssetImage("icons/fixed_wing-icon.png");
+    //c.drawCircle(Offset((tp.width.toInt() + 40) / 2, (tp.height.toInt() + 120) / 2), 40, Paint());
+    Picture p = recorder.endRecording();
+    ByteData bytes = await (await p.toImage(
+      tp.width.toInt() + 40, // 40
+      tp.height.toInt() + 120)).toByteData(format: ImageByteFormat.png); // 20
+
+    Uint8List data = Uint8List.view(bytes.buffer);
+    return BitmapDescriptor.fromBytes(data);
   }
 }
