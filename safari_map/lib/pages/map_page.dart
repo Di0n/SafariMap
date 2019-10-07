@@ -11,6 +11,7 @@ import 'package:safari_map/firebase/authentication.dart';
 import 'package:safari_map/firebase/database.dart';
 import 'package:safari_map/data/enums.dart';
 import 'package:safari_map/pages/marker_page.dart';
+import 'package:safari_map/utils/icons.dart';
 
 class MapPage extends StatefulWidget {
   MapPage({this.auth, this.onSignedOut});
@@ -80,7 +81,7 @@ class _MapPageState extends State<MapPage> {
       onPressed: _onQuadDronePressed,
       materialTapTargetSize: MaterialTapTargetSize.padded,
       backgroundColor: Colors.blue,
-      child: const Icon(Icons.toys, size: 36.0),
+      child: const Icon(CustomIcons.helicopter, size: 36.0),
       heroTag: "multi_rotor_fab",
     );
   }
@@ -107,9 +108,9 @@ class _MapPageState extends State<MapPage> {
       multirotorIcon = onValue;
     });
     
-    _createMarkerDisplay("").then((onValue) {
-      testIcon = onValue;
-    });
+//    _createMarkerDisplay("", ).then((onValue) {
+//      testIcon = onValue;
+//    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _onBuilt(context));
   }
@@ -163,15 +164,23 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  // Creates a marker
   Future<Marker> _createMarker(Heatspot hs) async {
     final MarkerId mID = MarkerId(hs.id);
+    String confidenceText = "Unknown";
+
+    var entry = hs.getHighestAnimalConfidence();
+    if (entry != null)
+      confidenceText = entry.key + ": " + entry.value.toString() + "%";
+
     return Marker(
       markerId: mID,
       /*infoWindow: InfoWindow(
           title: hs.id,
           snippet: "Made by: ${hs.drone.toString()}\n\n${hs.description}"),*/
       position: LatLng(hs.location.latitude, hs.location.longitude),
-      icon: await _createMarkerDisplay("Tiger 70%"),//(hs.drone == DroneType.fixedWing) ? fixedwingIcon : multirotorIcon,
+      icon: await _createMarkerDisplay(confidenceText,
+          hs.drone == DroneType.fixedWing ? CustomIcons.airplane : CustomIcons.helicopter, Colors.blue),//(hs.drone == DroneType.fixedWing) ? fixedwingIcon : multirotorIcon,
       onTap: () {
         _onMarkerTap(mID);
       },
@@ -179,8 +188,12 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  MapEntry<String, int> _getHighestConfidenceAnimal() {
+
+  }
   bool _fixedWingEnabled = true;
   bool _multiRotorEnabled = true;
+  // Toggle the specific drone type markers on the map
   void _toggleDroneTypeMap(final DroneType type) {
     if (type == DroneType.fixedWing)
       _fixedWingEnabled = !_fixedWingEnabled;
@@ -235,45 +248,13 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> _onFixedDronePressed() {
     _toggleDroneTypeMap(DroneType.fixedWing);
-//    _fixedWingEnabled = !_fixedWingEnabled;
-//    setState(() {
-//      if (!_fixedWingEnabled) {
-//        _markers.removeWhere((m) {
-//          final Heatspot hs = _markerHeatspots[m.markerId];
-//          return hs.drone == DroneType.fixedWing;
-//        });
-//      }
-//      else {
-//        var set = _allMarkers.where((m) {
-//          final Heatspot hs = _markerHeatspots[m.markerId];
-//          return hs.drone == DroneType.fixedWing;
-//        }).toSet();
-//        _markers.addAll(set);
-//      }
-//    });
   }
 
   // Aka Multi rotor
   Future<void> _onQuadDronePressed() {
     _toggleDroneTypeMap(DroneType.multiRotor);
-//    _multiRotorEnabled = !_multiRotorEnabled;
-//    setState(() {
-//      if (!_multiRotorEnabled) {
-//        _markers.removeWhere((m) {
-//          final Heatspot hs = _markerHeatspots[m.markerId];
-//          return hs.drone == DroneType.multiRotor;
-//        });
-//      }
-//      else {
-//        var set = _allMarkers.where((m) {
-//          final Heatspot hs = _markerHeatspots[m.markerId];
-//          return hs.drone == DroneType.multiRotor;
-//        }).toSet();
-//        _markers.addAll(set);
-//      }
-//    });
   }
-
+  // On marker tap event.
   Future<void> _onMarkerTap(MarkerId id) async {
     final Marker marker = _markers.firstWhere((m) => m.markerId == id);
     if (marker == null) {
@@ -362,13 +343,13 @@ class _MapPageState extends State<MapPage> {
       print(e);
     }
   }
-
-  Future<BitmapDescriptor> _createMarkerDisplay(String text) async {
+  // This function combines text with an existing icon and merges them.
+  Future<BitmapDescriptor> _createMarkerDisplay(String text, IconData icon, Color iconColor) async {
     PictureRecorder recorder = new PictureRecorder();
     Canvas c = new Canvas(recorder);
 
     // Do stuff
-    final icon = Icons.airplanemode_active;
+    //final icon = Icons.airplanemode_active;
     TextSpan span = new TextSpan(style: new TextStyle(
       color: Colors.white,
       fontSize: 40.0,
@@ -385,9 +366,10 @@ class _MapPageState extends State<MapPage> {
 
     TextPainter tpIcon = TextPainter(textDirection: TextDirection.rtl);
     tpIcon.text = TextSpan(text: String.fromCharCode(icon.codePoint),
-      style: TextStyle(fontSize: 120.0, fontFamily: icon.fontFamily));
+      style: TextStyle(fontSize: 120.0, fontFamily: icon.fontFamily, color: iconColor));
+
     tpIcon.layout();
-    tpIcon.paint(c, Offset((tp.width.toInt()) / 2, 20));
+    tpIcon.paint(c, Offset((tp.width.toInt() - 10) / 2, 50));
     //var i = AssetImage("icons/fixed_wing-icon.png");
     //c.drawCircle(Offset((tp.width.toInt() + 40) / 2, (tp.height.toInt() + 120) / 2), 40, Paint());
     Picture p = recorder.endRecording();

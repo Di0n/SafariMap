@@ -35,6 +35,26 @@ class Heatspot {
 
   List<String> get images => _images;
 
+  MapEntry<String, int> getHighestAnimalConfidence() {
+    if (_confidenceLevels.length > 0) {
+      String animal = "";
+      int highestConfidence = 0;
+
+      _confidenceLevels.forEach((k, v) {
+        if (v > highestConfidence) {
+          animal = k;
+          highestConfidence = v;
+        }
+      });
+
+      // If a highest confidence animal is found
+      if (!animal.isEmpty) {
+        return MapEntry(animal, highestConfidence);
+      }
+    }
+    return null;
+  }
+
   static Heatspot getHeatspot(DocumentSnapshot doc) {
     var data = doc.data;
     // TODO Exception if key value does not exist
