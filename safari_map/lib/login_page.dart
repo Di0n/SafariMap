@@ -121,6 +121,7 @@ class _LoginPageState extends State<LoginPage> {
         child: new TextFormField(
           maxLines: 1,
           autofocus: false,
+          obscureText: true,
           decoration: InputDecoration(
               hintText: ResourceStrings.LOGIN_PASSWORD,
               errorText: _emailPassCombinationSuccess ? null : "Password does not match email.",

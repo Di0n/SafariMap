@@ -7,14 +7,17 @@ class Heatspot {
   Timestamp _time;
   String _description;
   DroneType _drone;
+  Map<String, int> _confidenceLevels;
   List<String> _images;
 
-  Heatspot(String id, GeoPoint location, Timestamp time, String description, DroneType drone, List<String> images) {
+  Heatspot(String id, GeoPoint location, Timestamp time, String description,
+      DroneType drone, Map<String, int> confidenceLevels, List<String> images) {
     this._id = id;
     this._location = location;
     this._time = _time;
     this._description = description;
     this._drone = drone;
+    this._confidenceLevels = confidenceLevels;
     this._images = images;
   }
 
@@ -28,14 +31,45 @@ class Heatspot {
 
   DroneType get drone => _drone;
 
+  Map<String, int> get confidenceLevels => _confidenceLevels;
+
   List<String> get images => _images;
+
+  MapEntry<String, int> getHighestAnimalConfidence() {
+    if (_confidenceLevels.length > 0) {
+      String animal = "";
+      int highestConfidence = 0;
+
+      _confidenceLevels.forEach((k, v) {
+        if (v > highestConfidence) {
+          animal = k;
+          highestConfidence = v;
+        }
+      });
+
+      // If a highest confidence animal is found
+      if (!animal.isEmpty) {
+        return MapEntry(animal, highestConfidence);
+      }
+    }
+    return null;
+  }
 
   static Heatspot getHeatspot(DocumentSnapshot doc) {
     var data = doc.data;
     // TODO Exception if key value does not exist
+    Map<dynamic, dynamic> confLevels = data["confidenceLevels"];
+    Map<String, int> confidenceLevels = Map();
+    confLevels.forEach((key, value) {
+      String animal = key;
+      int percentage = int.parse(value.toString());
+      confidenceLevels.putIfAbsent(animal, () => percentage);
+    });
+
+    // test = map["Lion"];
     List<dynamic> images = data["images"];
     Heatspot hs = new Heatspot(doc.documentID, data["location"], data["time"],
-        data["description"], DroneType.values[data["droneType"]], images.cast<String>());
+        data["description"], DroneType.values[data["droneType"]], confidenceLevels, images.cast<String>());
 
     return hs;
   }

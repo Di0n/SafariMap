@@ -1,8 +1,12 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:safari_map/data/enums.dart';
 import 'package:safari_map/data/heatspot.dart';
 import 'package:carousel_pro/carousel_pro.dart';
+import 'package:safari_map/pages/photo_inspect_page.dart';
+import 'package:safari_map/utils/util.dart';
 
 // Resources
 // https://www.youtube.com/watch?v=_W2R-3dGHc4
@@ -44,13 +48,14 @@ class _MarkerPageState extends State<MarkerPage> {
       ),
       body: SingleChildScrollView(
         child: Container(
-          padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
+          padding: EdgeInsets.fromLTRB(0, 0, 0, 64),
           child: ListView(
             shrinkWrap: true,
             children: <Widget>[
               _showImageCarousel(),
-              Text("asda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\n"
-                  "asda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\n"),
+              _showConfidenceLevels(),
+              _showDroneInfo(),
+              _showTimeInfo(),
             ],
           ),
         ),
@@ -88,8 +93,34 @@ class _MarkerPageState extends State<MarkerPage> {
           //dotBgColor: Colors.purple.withOpacity(0.5),
           borderRadius: false,
           autoplayDuration: Duration(milliseconds: 5000),
+          onImageTap: _onImageTap,
         ),
       ),
     );
+  }
+
+  Widget _showConfidenceLevels() {
+    String text = "";
+    widget.hs.confidenceLevels.forEach((k, v) {
+      text += k + ": " + v.toString() + "%\n";
+    });
+    return Text(text);
+  }
+
+  Widget _showDroneInfo() {
+    final heatspot = widget.hs;
+    return Text("Taken by dronetype: " + ((heatspot.drone == DroneType.fixedWing) ? "Fixed Wing" : "Multi Rotor"));
+  }
+
+  Widget _showTimeInfo() {
+    final heatspot = widget.hs;
+    DateTime dt = DateTime.now();
+    return Text("Taken on: " + Util.stringFormat("{0}:{1}, {2}-{3}-{4}.", [dt.hour, dt.minute, dt.day, dt.month, dt.year]));
+  }
+
+  Future<void> _onImageTap(int index) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => PhotoInspectPage(widget.images[index].imageUrl)));
+    // TODO open photo_view screen
+    // TODO COULD HAVE: Gesture detector for image
   }
 }
