@@ -132,7 +132,7 @@ class _MapPageState extends State<MapPage> {
             "Map",
           ),
           actions: <Widget>[
-            IconButton(icon: Icon(Icons.more_vert), onPressed: (){}), // TODO popupmenu
+            IconButton(icon: Icon(Icons.more_vert), onPressed: (){ }), // TODO popupmenu
           ],
         ),
         body: Stack(

@@ -15,9 +15,11 @@ class PhotoInspectPage extends StatelessWidget {
       body: GestureDetector(
         child: PhotoView(
           imageProvider: CachedNetworkImageProvider(image),
+          minScale: 0.5,
           backgroundDecoration: BoxDecoration(color: Colors.black),
         ),
         onTap: () {
+          print("Popped");
           Navigator.pop(context);
         },
       ),
