@@ -1,8 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:safari_map/data/heatspot.dart';
 import 'package:carousel_pro/carousel_pro.dart';
+import 'package:safari_map/pages/photo_inspect_page.dart';
 
 // Resources
 // https://www.youtube.com/watch?v=_W2R-3dGHc4
@@ -49,8 +51,7 @@ class _MarkerPageState extends State<MarkerPage> {
             shrinkWrap: true,
             children: <Widget>[
               _showImageCarousel(),
-              Text("asda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\n"
-                  "asda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\nasda\nasdasd\nasdasd\n"),
+              Text("Placeholder\nAnother placeholder"),
             ],
           ),
         ),
@@ -88,8 +89,15 @@ class _MarkerPageState extends State<MarkerPage> {
           //dotBgColor: Colors.purple.withOpacity(0.5),
           borderRadius: false,
           autoplayDuration: Duration(milliseconds: 5000),
+          onImageTap: _onImageTap,
         ),
       ),
     );
+  }
+
+  Future<void> _onImageTap(int index) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => PhotoInspectPage(widget.images[index].imageUrl)));
+    // TODO open photo_view screen
+    // TODO COULD HAVE: Gesture detector for image
   }
 }
