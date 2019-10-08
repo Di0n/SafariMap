@@ -17,10 +17,15 @@ class MyApp extends StatelessWidget {
       title: 'Safari Map',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.lightBlue,
+        primarySwatch: Colors.red,
         primaryTextTheme: TextTheme(
           title: TextStyle(
             color: Colors.white,
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black)
           ),
         ),
       ),
