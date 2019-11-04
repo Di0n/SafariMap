@@ -35,10 +35,15 @@ class FirestoreHelper implements Database {
 //  }
 
   Future<List<Heatspot>> getHeatspots() async {
-    CollectionReference collection = await _instance.collection(Database.heatspotCollection);
-        //.where("heatspots.time", isGreaterThanOrEqualTo: new DateTime.now());
+    final currentDateTime = DateTime.now();
+    final currentDate = DateTime(currentDateTime.year, currentDateTime.month, currentDateTime.day); // Time at 00:00
 
-    QuerySnapshot snapshot = await collection.getDocuments();
+    //var collection = await _instance.collection(Database.heatspotCollection).where("heatspot.time", isGreaterThanOrEqualTo: currentDate).reference();//.where("time", isGreaterThanOrEqualTo: currentDate).reference();//.where("time", is: new DateTime.now());
+        //.where("heatspots.time", isGreaterThanOrEqualTo: new DateTime.now());
+    // Only retrieve markers which are detected on the same day
+    final Query query = _instance.collection(Database.heatspotCollection).where("time", isGreaterThanOrEqualTo: currentDate);
+
+    QuerySnapshot snapshot = await query.getDocuments(); //_instance.collection(Database.heatspotCollection). //collection.getDocuments();
     List<Heatspot> heatspots = new List();
 
     for (int i = 0; i < snapshot.documents.length; i++) {
