@@ -70,7 +70,7 @@ class _MapPageState extends State<MapPage> {
     return FloatingActionButton(
       onPressed: _onFixedDronePressed,
       materialTapTargetSize: MaterialTapTargetSize.padded,
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.redAccent,
       child: const Icon(Icons.airplanemode_active, size: 36.0),
       heroTag: "fixed_drone_fab",
     );
@@ -80,7 +80,7 @@ class _MapPageState extends State<MapPage> {
     return FloatingActionButton(
       onPressed: _onQuadDronePressed,
       materialTapTargetSize: MaterialTapTargetSize.padded,
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.redAccent,
       child: const Icon(CustomIcons.helicopter, size: 36.0),
       heroTag: "multi_rotor_fab",
     );
@@ -90,7 +90,7 @@ class _MapPageState extends State<MapPage> {
     return FloatingActionButton(
       onPressed: _onMyLocationPressed,
       materialTapTargetSize: MaterialTapTargetSize.padded,
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.redAccent,
       child: const Icon(Icons.my_location, size: 36.0),
       heroTag: "my_location_fab",
     );
@@ -180,7 +180,7 @@ class _MapPageState extends State<MapPage> {
           snippet: "Made by: ${hs.drone.toString()}\n\n${hs.description}"),*/
       position: LatLng(hs.location.latitude, hs.location.longitude),
       icon: await _createMarkerDisplay(confidenceText,
-          hs.drone == DroneType.fixedWing ? CustomIcons.airplane : CustomIcons.helicopter, Colors.blue),//(hs.drone == DroneType.fixedWing) ? fixedwingIcon : multirotorIcon,
+          hs.drone == DroneType.fixedWing ? CustomIcons.airplane : CustomIcons.helicopter, Colors.redAccent),//(hs.drone == DroneType.fixedWing) ? fixedwingIcon : multirotorIcon,
       onTap: () {
         _onMarkerTap(mID);
       },
@@ -343,12 +343,11 @@ class _MapPageState extends State<MapPage> {
       print(e);
     }
   }
-  // This function combines text with an existing icon and merges them.
+  // This function combines text with an icon and merges them.
   Future<BitmapDescriptor> _createMarkerDisplay(String text, IconData icon, Color iconColor) async {
     PictureRecorder recorder = new PictureRecorder();
     Canvas c = new Canvas(recorder);
 
-    // Do stuff
     //final icon = Icons.airplanemode_active;
     TextSpan span = new TextSpan(style: new TextStyle(
       color: Colors.white,

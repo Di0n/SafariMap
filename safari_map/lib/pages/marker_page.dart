@@ -88,7 +88,7 @@ class _MarkerPageState extends State<MarkerPage> {
           images: widget.images,
           dotSize: 6.0,
           dotSpacing: 15.0,
-          dotColor: Colors.lightGreenAccent,
+          dotColor: Colors.redAccent,
           indicatorBgPadding: 5.0,
           //dotBgColor: Colors.purple.withOpacity(0.5),
           borderRadius: false,
@@ -100,22 +100,31 @@ class _MarkerPageState extends State<MarkerPage> {
   }
 
   Widget _showConfidenceLevels() {
-    String text = "";
+    String text = "Confidence levels\n\n";
     widget.hs.confidenceLevels.forEach((k, v) {
       text += k + ": " + v.toString() + "%\n";
     });
-    return Text(text);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+      child: Text(text),
+    );//Text(text);
   }
 
   Widget _showDroneInfo() {
     final heatspot = widget.hs;
-    return Text("Taken by dronetype: " + ((heatspot.drone == DroneType.fixedWing) ? "Fixed Wing" : "Multi Rotor"));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+      child: Text("Taken by dronetype: " + ((heatspot.drone == DroneType.fixedWing) ? "Fixed Wing" : "Multi Rotor"))
+    );//Text("Taken by dronetype: " + ((heatspot.drone == DroneType.fixedWing) ? "Fixed Wing" : "Multi Rotor"));
   }
 
   Widget _showTimeInfo() {
     final heatspot = widget.hs;
     DateTime dt = DateTime.now();
-    return Text("Taken on: " + Util.stringFormat("{0}:{1}, {2}-{3}-{4}.", [dt.hour, dt.minute, dt.day, dt.month, dt.year]));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
+      child: Text("Taken on: " + Util.stringFormat("{0}:{1}, {2}-{3}-{4}.", [dt.hour, dt.minute, dt.day, dt.month, dt.year])),
+    );
   }
 
   Future<void> _onImageTap(int index) {
