@@ -56,6 +56,8 @@ flutter:
     - assets/icons/flutter-icon.png
     - assets/icons/fixed_wing-icon.png
     - assets/icons/multi_rotor-icon.png
+    - assets/icons/safari_live-icon.png
+    - assets/icons/safari_live-icon2.png
 
   fonts:
     - family: SafariMap
