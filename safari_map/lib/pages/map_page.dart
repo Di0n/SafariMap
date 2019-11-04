@@ -132,7 +132,9 @@ class _MapPageState extends State<MapPage> {
             "Map",
           ),
           actions: <Widget>[
-            IconButton(icon: Icon(Icons.more_vert), onPressed: (){ }), // TODO popupmenu
+            IconButton(icon: Icon(Icons.refresh), onPressed: _onMapRefreshPressed),
+            IconButton(icon: Icon(Icons.settings), onPressed: _onSettingsPressed)
+            //IconButton(icon: Icon(Icons.more_vert), onPressed: _onMenuPressed), // TODO popupmenu
           ],
         ),
         body: Stack(
@@ -253,6 +255,14 @@ class _MapPageState extends State<MapPage> {
   // Aka Multi rotor
   Future<void> _onQuadDronePressed() {
     _toggleDroneTypeMap(DroneType.multiRotor);
+  }
+
+  Future<void> _onMapRefreshPressed() {
+    // TODO refresh markers
+  }
+
+  Future<void> _onSettingsPressed() {
+    // TODO open settings
   }
   // On marker tap event.
   Future<void> _onMarkerTap(MarkerId id) async {
