@@ -1,17 +1,21 @@
 import 'dart:async';
 import 'dart:core';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:safari_map/data/heatspot.dart';
 import 'package:safari_map/data/enums.dart';
+import 'package:safari_map/firebase/authentication.dart';
 
 abstract class Database {
   static const String droneCollection = "drones";
   static const String fixedWingDocument = "fixed-wing";
   static const String multiRotorDocument = "multi-rotor";
   static const String heatspotCollection = "heatspots";
+  static const String userCollection = "users";
 
   //Future<List<Heatspot>> getHeatspots(DroneType type);
   Future<List<Heatspot>> getHeatspots();
+  Future<void> validateUserPermissions();
 }
 
 class FirestoreHelper implements Database {
@@ -53,5 +57,28 @@ class FirestoreHelper implements Database {
     }
 
     return heatspots;
+  }
+
+  // Checks if user permissions are present and if not will add them
+  Future<void> validateUserPermissions() async {
+
+    final Auth auth = FirebaseAuthentication();
+    final FirebaseUser user = await auth.getCurrentUser();
+    var data = {"canEdit":false, "email":user.email};
+    DocumentReference docref  = _instance.collection(Database.userCollection).document(user.uid);
+    DocumentSnapshot doc = await docref.get();
+    if (!doc.exists)
+      await _instance.collection(Database.userCollection).document(user.uid).setData(data, merge: true);
+  }
+
+  Future<bool> isAdministrator() async {
+    final Auth auth = FirebaseAuthentication();
+    final FirebaseUser user = await auth.getCurrentUser();
+    DocumentReference docref  = _instance.collection(Database.userCollection).document(user.uid);
+    DocumentSnapshot doc = await docref.get();
+    if (doc.exists) {
+      return doc.data["canEdit"];
+    }
+    else return false;
   }
 }

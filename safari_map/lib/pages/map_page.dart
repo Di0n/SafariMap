@@ -119,6 +119,7 @@ class _MapPageState extends State<MapPage> {
   // Called after widget is build for the first time
   Future<void> _onBuilt(BuildContext context) async {
     print("onBuilt");
+
     List<Heatspot> heatspots = await database.getHeatspots();
     await _addHeatspotsToMap(heatspots);
   }

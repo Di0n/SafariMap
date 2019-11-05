@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safari_map/firebase/authentication.dart';
+import 'package:safari_map/firebase/database.dart';
 import 'package:safari_map/pages/forgot_password_page.dart';
 import 'package:safari_map/pages/photo_inspect_page.dart';
 import 'package:safari_map/utils/resource_strings.dart';
@@ -250,6 +252,8 @@ class _LoginPageState extends State<LoginPage> {
 
       if (userID != null && userID.length > 0) {
         print('Signed in: $userID');
+        Database db = FirestoreHelper();
+        await db.validateUserPermissions();
         widget.onSignedIn();
       } else {
         _emailPassCombinationSuccess = false;

@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:safari_map/data/enums.dart';
 import 'package:safari_map/data/heatspot.dart';
 import 'package:carousel_pro/carousel_pro.dart';
+import 'package:safari_map/firebase/database.dart';
 import 'package:safari_map/pages/photo_inspect_page.dart';
 import 'package:safari_map/utils/util.dart';
 
@@ -45,6 +46,9 @@ class _MarkerPageState extends State<MarkerPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Heatspot"),
+        actions: <Widget>[
+          _editIcon()
+        ],
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -80,6 +84,13 @@ class _MarkerPageState extends State<MarkerPage> {
     );
   }
 
+  Widget _editIcon() {
+    if (true) {
+      return IconButton(icon: Icon(Icons.edit), onPressed: _onEditPressed);
+    } else {
+      return Container(height: 0, width: 0);
+    }
+  }
   Widget _showImageCarousel() {
     return SizedBox(
       height: 200.0,
@@ -131,5 +142,9 @@ class _MarkerPageState extends State<MarkerPage> {
     Navigator.push(context, MaterialPageRoute(builder: (context) => PhotoInspectPage(widget.images[index].imageUrl)));
     // TODO open photo_view screen
     // TODO COULD HAVE: Gesture detector for image
+  }
+
+  Future<void> _onEditPressed() {
+
   }
 }
