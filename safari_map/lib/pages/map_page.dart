@@ -46,11 +46,15 @@ class _MapPageState extends State<MapPage> {
   // Database for retrieval of data
   final Database database = FirestoreHelper();
 
+  bool _refreshInProgess = false;
+  bool _fixedWingEnabled = true;
+  bool _multiRotorEnabled = true;
+
   BitmapDescriptor fixedwingIcon;
   BitmapDescriptor multirotorIcon;
   BitmapDescriptor testIcon;
 
-  GoogleMap getMap() {
+  GoogleMap _getMap() {
     return GoogleMap(
       onMapCreated: _onMapCreated,
       mapType: MapType.satellite,
@@ -96,8 +100,6 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-
-
   @override
   void initState() {
     super.initState();
@@ -117,8 +119,8 @@ class _MapPageState extends State<MapPage> {
   // Called after widget is build for the first time
   Future<void> _onBuilt(BuildContext context) async {
     print("onBuilt");
-
-    await _addMarkersToMap();
+    List<Heatspot> heatspots = await database.getHeatspots();
+    await _addHeatspotsToMap(heatspots);
   }
 
 
@@ -139,7 +141,8 @@ class _MapPageState extends State<MapPage> {
         ),
         body: Stack(
           children: <Widget>[
-            getMap(),
+            _getMap(),
+            _refreshProgressIndicator(),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Align(
@@ -166,7 +169,21 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  // Creates a marker
+  // Shows a circular progress indicator when the map is refreshing (loading heatspots)
+  Widget _refreshProgressIndicator() {
+    return _refreshInProgess ?
+    Center(child:
+      CircularProgressIndicator()) :
+    Container(height: 0, width: 0);
+//    return Center(child:
+//      SizedBox(
+//        child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Colors.white)),
+//        height: 20,
+//        width: 20,
+//      ));
+  }
+
+  // Creates a marker class
   Future<Marker> _createMarker(Heatspot hs) async {
     final MarkerId mID = MarkerId(hs.id);
     String confidenceText = "Unknown";
@@ -190,11 +207,15 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  MapEntry<String, int> _getHighestConfidenceAnimal() {
-
+  // Clears all markers from the map
+  void _clearAllMarkers() {
+    setState(() {
+      _markers.clear();
+      _allMarkers.clear();
+      _markerHeatspots.clear();
+    });
   }
-  bool _fixedWingEnabled = true;
-  bool _multiRotorEnabled = true;
+
   // Toggle the specific drone type markers on the map
   void _toggleDroneTypeMap(final DroneType type) {
     if (type == DroneType.fixedWing)
@@ -220,11 +241,7 @@ class _MapPageState extends State<MapPage> {
     });
   }
   // Add markers to the map
-  Future<void> _addMarkersToMap() async {
-    // Retrieve heatspots from database
-//    List<Heatspot> heatspots = await database.getHeatspots(DroneType.fixedWing);
-//    var temp = await database.getHeatspots(DroneType.multiRotor);
-    List<Heatspot> heatspots = await database.getHeatspots();
+  Future<void> _addHeatspotsToMap(List<Heatspot> heatspots) async {
     // Create set for storage
     Set<Marker> markers = Set();
     // Loop through the loaded heatspots
@@ -238,15 +255,14 @@ class _MapPageState extends State<MapPage> {
       }
     }
     // Add markers on map and rebuild widget
+    _allMarkers.addAll(markers);
     setState(() {
       _markers.addAll(markers);
-      _allMarkers.addAll(markers);
     });
   }
   void _onMapCreated(GoogleMapController controller) {
     _controller.complete(controller);
   }
-
 
   Future<void> _onFixedDronePressed() {
     _toggleDroneTypeMap(DroneType.fixedWing);
@@ -257,8 +273,18 @@ class _MapPageState extends State<MapPage> {
     _toggleDroneTypeMap(DroneType.multiRotor);
   }
 
-  Future<void> _onMapRefreshPressed() {
+  Future<void> _onMapRefreshPressed() async {
     // TODO refresh markers
+    if (_refreshInProgess) return;
+    setState(() {
+      _refreshInProgess = true;
+    });
+    List<Heatspot> heatspots = await database.getHeatspots();
+    _clearAllMarkers();
+    _addHeatspotsToMap(heatspots);
+    setState(() {
+      _refreshInProgess = false;
+    });
   }
 
   Future<void> _onSettingsPressed() {
