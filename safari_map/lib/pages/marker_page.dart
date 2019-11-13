@@ -2,11 +2,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:safari_map/data/animal_confidence.dart';
 import 'package:safari_map/data/enums.dart';
 import 'package:safari_map/data/heatspot.dart';
 import 'package:carousel_pro/carousel_pro.dart';
 import 'package:safari_map/firebase/database.dart';
 import 'package:safari_map/pages/photo_inspect_page.dart';
+import 'package:safari_map/pages/edit_heatspot_page.dart';
 import 'package:safari_map/utils/util.dart';
 
 // Resources
@@ -42,6 +44,18 @@ class MarkerPage extends StatefulWidget {
 }
 
 class _MarkerPageState extends State<MarkerPage> {
+
+  static const double _leftEdgeDistance = 8.0;
+  List<AnimalConfidence> _animals = List<AnimalConfidence>();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.hs.confidenceLevels.forEach((k, v) {
+      _animals.add(AnimalConfidence(animal: k, confidence: v));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,7 +131,7 @@ class _MarkerPageState extends State<MarkerPage> {
       text += k + ": " + v.toString() + "%\n";
     });
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+      padding: const EdgeInsets.fromLTRB(_leftEdgeDistance, 10, 0, 0),
       child: Text(text),
     );//Text(text);
   }
@@ -125,7 +139,7 @@ class _MarkerPageState extends State<MarkerPage> {
   Widget _showDroneInfo() {
     final heatspot = widget.hs;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+      padding: const EdgeInsets.fromLTRB(_leftEdgeDistance, 20, 0, 0),
       child: Text("Taken by dronetype: " + ((heatspot.drone == DroneType.fixedWing) ? "Fixed Wing" : "Multi Rotor"))
     );//Text("Taken by dronetype: " + ((heatspot.drone == DroneType.fixedWing) ? "Fixed Wing" : "Multi Rotor"));
   }
@@ -134,7 +148,7 @@ class _MarkerPageState extends State<MarkerPage> {
     final heatspot = widget.hs;
     DateTime dt = DateTime.now();
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
+      padding: const EdgeInsets.fromLTRB(_leftEdgeDistance, 5, 0, 0),
       child: Text("Taken on: " + Util.stringFormat("{0}:{1}, {2}-{3}-{4}.", [dt.hour, dt.minute, dt.day, dt.month, dt.year])),
     );
   }
@@ -145,6 +159,9 @@ class _MarkerPageState extends State<MarkerPage> {
   }
 
   Future<void> _onEditPressed() {
-    // TODO open edit screen 
+    // TODO open edit screen
+
+    Navigator.push(context, MaterialPageRoute(builder: (context) => EditHeatspotPage(_animals)));
+
   }
 }
