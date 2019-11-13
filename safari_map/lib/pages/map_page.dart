@@ -50,6 +50,8 @@ class _MapPageState extends State<MapPage> {
   bool _fixedWingEnabled = true;
   bool _multiRotorEnabled = true;
 
+  bool _isAdmin = false;
+
   BitmapDescriptor fixedwingIcon;
   BitmapDescriptor multirotorIcon;
   BitmapDescriptor testIcon;
@@ -119,7 +121,7 @@ class _MapPageState extends State<MapPage> {
   // Called after widget is build for the first time
   Future<void> _onBuilt(BuildContext context) async {
     print("onBuilt");
-
+    _isAdmin = await database.isAdministrator();
     List<Heatspot> heatspots = await database.getHeatspots();
     await _addHeatspotsToMap(heatspots);
   }
@@ -301,7 +303,7 @@ class _MapPageState extends State<MapPage> {
     }
     print("Marker tapped and found");
     final heatspot = _markerHeatspots[marker.markerId];
-    Navigator.push(context, MaterialPageRoute(builder: (context) => MarkerPage(heatspot)),);
+    Navigator.push(context, MaterialPageRoute(builder: (context) => MarkerPage(heatspot, _isAdmin)),);
   }
 
   // Callback on my location pressed

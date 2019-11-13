@@ -17,9 +17,10 @@ import 'package:safari_map/utils/util.dart';
 
 class MarkerPage extends StatefulWidget {
   final Heatspot hs;
+  final bool _isAdmin;
   List<CachedNetworkImage> images;
 
-  MarkerPage(this.hs) {
+  MarkerPage(this.hs, this._isAdmin) {
     images = List();
     for (int i = 0; i < hs.images.length; i++) {
       images.add(CachedNetworkImage(
@@ -85,7 +86,7 @@ class _MarkerPageState extends State<MarkerPage> {
   }
 
   Widget _editIcon() {
-    if (true) {
+    if (widget._isAdmin) {
       return IconButton(icon: Icon(Icons.edit), onPressed: _onEditPressed);
     } else {
       return Container(height: 0, width: 0);
@@ -140,11 +141,10 @@ class _MarkerPageState extends State<MarkerPage> {
 
   Future<void> _onImageTap(int index) {
     Navigator.push(context, MaterialPageRoute(builder: (context) => PhotoInspectPage(widget.images[index].imageUrl)));
-    // TODO open photo_view screen
     // TODO COULD HAVE: Gesture detector for image
   }
 
   Future<void> _onEditPressed() {
-
+    // TODO open edit screen 
   }
 }

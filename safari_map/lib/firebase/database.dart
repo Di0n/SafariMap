@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:safari_map/data/heatspot.dart';
 import 'package:safari_map/data/enums.dart';
+import 'package:safari_map/data/user.dart';
 import 'package:safari_map/firebase/authentication.dart';
 
 abstract class Database {
@@ -16,6 +17,7 @@ abstract class Database {
   //Future<List<Heatspot>> getHeatspots(DroneType type);
   Future<List<Heatspot>> getHeatspots();
   Future<void> validateUserPermissions();
+  Future<bool> isAdministrator();
 }
 
 class FirestoreHelper implements Database {
@@ -63,7 +65,8 @@ class FirestoreHelper implements Database {
   Future<void> validateUserPermissions() async {
 
     final Auth auth = FirebaseAuthentication();
-    final FirebaseUser user = await auth.getCurrentUser();
+    final FBUser user = await auth.getCurrentUser();
+
     var data = {"canEdit":false, "email":user.email};
     DocumentReference docref  = _instance.collection(Database.userCollection).document(user.uid);
     DocumentSnapshot doc = await docref.get();
@@ -73,7 +76,7 @@ class FirestoreHelper implements Database {
 
   Future<bool> isAdministrator() async {
     final Auth auth = FirebaseAuthentication();
-    final FirebaseUser user = await auth.getCurrentUser();
+    final FBUser user = await auth.getCurrentUser();
     DocumentReference docref  = _instance.collection(Database.userCollection).document(user.uid);
     DocumentSnapshot doc = await docref.get();
     if (doc.exists) {
@@ -81,4 +84,6 @@ class FirestoreHelper implements Database {
     }
     else return false;
   }
+
+  // getUserProperties???
 }
