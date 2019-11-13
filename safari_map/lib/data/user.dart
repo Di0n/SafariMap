@@ -16,8 +16,10 @@ abstract class User {
 
 class FBUser extends User {
   FBUser(FirebaseUser fbUser) {
-    _uid = fbUser.uid;
-    _email = fbUser.email;
+    if (fbUser != null) {
+      _uid = fbUser.uid;
+      _email = fbUser.email;
+    }
   }
 }
 /*class User {
