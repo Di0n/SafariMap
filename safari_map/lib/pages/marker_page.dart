@@ -11,22 +11,26 @@ import 'package:safari_map/pages/photo_inspect_page.dart';
 import 'package:safari_map/pages/edit_heatspot_page.dart';
 import 'package:safari_map/utils/util.dart';
 
+// TODO rename to heatspot page
 // Resources
 // https://www.youtube.com/watch?v=_W2R-3dGHc4
 // https://pub.dev/packages/gscarousel
 // https://www.google.com/search?q=flutter+carousel+images&client=firefox-b-d&source=lnms&tbm=isch&sa=X&ved=0ahUKEwjxu_Gh2enkAhUrMewKHSzjDEMQ_AUIEigC&biw=1536&bih=750#imgrc=_
 // https://medium.com/flutter-community/flutter-layout-cheat-sheet-5363348d037e
 
+// NOTE:  Pop returns true if heatspot was updated/deleted and thus requires a refresh,
+//        returns false if heatspot was not changed.
 class MarkerPage extends StatefulWidget {
-  final Heatspot hs;
+  Heatspot _hs;
   final bool _isAdmin;
   List<CachedNetworkImage> images;
+  final Database _db = FirestoreHelper();
 
-  MarkerPage(this.hs, this._isAdmin) {
+  MarkerPage(this._hs, this._isAdmin) {
     images = List();
-    for (int i = 0; i < hs.images.length; i++) {
+    for (int i = 0; i < _hs.images.length; i++) {
       images.add(CachedNetworkImage(
-          imageUrl: hs.images[i],
+          imageUrl: _hs.images[i],
           imageBuilder: (context, imageProvider) => Container(
                 decoration: BoxDecoration(
                     image: DecorationImage(
@@ -46,56 +50,39 @@ class MarkerPage extends StatefulWidget {
 class _MarkerPageState extends State<MarkerPage> {
 
   static const double _leftEdgeDistance = 8.0;
-  List<AnimalConfidence> _animals = List<AnimalConfidence>();
+  bool _edited = false;
 
   @override
   void initState() {
     super.initState();
-    widget.hs.confidenceLevels.forEach((k, v) {
-      _animals.add(AnimalConfidence(animal: k, confidence: v));
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Heatspot"),
-        actions: <Widget>[
-          _deleteIcon(),
-          _editIcon()
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.fromLTRB(0, 0, 0, 64),
-          child: ListView(
-            shrinkWrap: true,
-            children: <Widget>[
-              _showImageCarousel(),
-              _showConfidenceLevels(),
-              _showDroneInfo(),
-              _showTimeInfo(),
-            ],
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Heatspot"),
+          actions: <Widget>[
+            _deleteIcon(),
+            _editIcon()
+          ],
+        ),
+        body: SingleChildScrollView(
+          child: Container(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 64),
+            child: ListView(
+              shrinkWrap: true,
+              children: <Widget>[
+                _showImageCarousel(),
+                _showConfidenceLevels(),
+                _showDroneInfo(),
+                _showTimeInfo(),
+              ],
+            ),
           ),
         ),
-//       child: Container(
-//         child: SizedBox(
-//           height: 200.0,
-//           child: Center(
-//             child: Carousel(
-//               images: widget.images,
-//               dotSize: 6.0,
-//               dotSpacing: 15.0,
-//               dotColor: Colors.lightGreenAccent,
-//               indicatorBgPadding: 5.0,
-//               //dotBgColor: Colors.purple.withOpacity(0.5),
-//               borderRadius: false,
-//               autoplayDuration: Duration(milliseconds: 5000),
-//             ),
-//           ),
-//         ),
-//       ),
       ),
     );
   }
@@ -135,7 +122,7 @@ class _MarkerPageState extends State<MarkerPage> {
 
   Widget _showConfidenceLevels() {
     String text = "Confidence levels\n\n";
-    widget.hs.confidenceLevels.forEach((k, v) {
+    widget._hs.confidenceLevels.forEach((k, v) {
       text += k + ": " + v.toString() + "%\n";
     });
     return Padding(
@@ -145,7 +132,7 @@ class _MarkerPageState extends State<MarkerPage> {
   }
 
   Widget _showDroneInfo() {
-    final heatspot = widget.hs;
+    final heatspot = widget._hs;
     return Padding(
       padding: const EdgeInsets.fromLTRB(_leftEdgeDistance, 20, 0, 0),
       child: Text("Taken by dronetype: " + ((heatspot.drone == DroneType.fixedWing) ? "Fixed Wing" : "Multi Rotor"))
@@ -153,7 +140,7 @@ class _MarkerPageState extends State<MarkerPage> {
   }
 
   Widget _showTimeInfo() {
-    final heatspot = widget.hs;
+    final heatspot = widget._hs;
     DateTime dt = DateTime.now();
     return Padding(
       padding: const EdgeInsets.fromLTRB(_leftEdgeDistance, 5, 0, 0),
@@ -166,14 +153,29 @@ class _MarkerPageState extends State<MarkerPage> {
     // TODO COULD HAVE: Gesture detector for image
   }
 
-  Future<void> _onEditPressed() {
-    // TODO open edit screen
-
-    Navigator.push(context, MaterialPageRoute(builder: (context) => EditHeatspotPage(_animals)));
-
+  // Intercept android back button so a value can be returned
+  Future<bool> _onWillPop() {
+    Navigator.pop(context, _edited);
+    return Future.value(false);
+  }
+  Future<void> _onEditPressed() async {
+    final Heatspot hs = await Navigator.push(context, MaterialPageRoute(builder: (context) => EditHeatspotPage(widget._hs)));
+    if (hs != null) {
+      print("HS is not null");
+      var updateOperation = widget._db.updateHeatspot(hs);
+      setState(() {
+        widget._hs = hs;
+      });
+      await updateOperation;
+      _edited = true;
+    }
   }
 
-  Future<void> _onDeletePressed() {
+  Future<void> _onDeletePressed() async {
+    await widget._db.deleteHeatspot(widget._hs);
+    _edited = true;
 
+    // Close the heatspot page because it does not exist anymore
+    Navigator.pop(context, _edited);
   }
 }
