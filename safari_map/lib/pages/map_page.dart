@@ -46,11 +46,17 @@ class _MapPageState extends State<MapPage> {
   // Database for retrieval of data
   final Database database = FirestoreHelper();
 
+  bool _refreshInProgess = false;
+  bool _fixedWingEnabled = true;
+  bool _multiRotorEnabled = true;
+
+  bool _isAdmin = false;
+
   BitmapDescriptor fixedwingIcon;
   BitmapDescriptor multirotorIcon;
   BitmapDescriptor testIcon;
 
-  GoogleMap getMap() {
+  GoogleMap _getMap() {
     return GoogleMap(
       onMapCreated: _onMapCreated,
       mapType: MapType.satellite,
@@ -70,7 +76,7 @@ class _MapPageState extends State<MapPage> {
     return FloatingActionButton(
       onPressed: _onFixedDronePressed,
       materialTapTargetSize: MaterialTapTargetSize.padded,
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.redAccent,
       child: const Icon(Icons.airplanemode_active, size: 36.0),
       heroTag: "fixed_drone_fab",
     );
@@ -80,7 +86,7 @@ class _MapPageState extends State<MapPage> {
     return FloatingActionButton(
       onPressed: _onQuadDronePressed,
       materialTapTargetSize: MaterialTapTargetSize.padded,
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.redAccent,
       child: const Icon(CustomIcons.helicopter, size: 36.0),
       heroTag: "multi_rotor_fab",
     );
@@ -90,13 +96,11 @@ class _MapPageState extends State<MapPage> {
     return FloatingActionButton(
       onPressed: _onMyLocationPressed,
       materialTapTargetSize: MaterialTapTargetSize.padded,
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.redAccent,
       child: const Icon(Icons.my_location, size: 36.0),
       heroTag: "my_location_fab",
     );
   }
-
-
 
   @override
   void initState() {
@@ -117,8 +121,9 @@ class _MapPageState extends State<MapPage> {
   // Called after widget is build for the first time
   Future<void> _onBuilt(BuildContext context) async {
     print("onBuilt");
-
-    await _addMarkersToMap();
+    _isAdmin = await database.isAdministrator();
+    List<Heatspot> heatspots = await database.getHeatspots();
+    await _addHeatspotsToMap(heatspots);
   }
 
 
@@ -132,12 +137,15 @@ class _MapPageState extends State<MapPage> {
             "Map",
           ),
           actions: <Widget>[
-            IconButton(icon: Icon(Icons.more_vert), onPressed: (){ }), // TODO popupmenu
+            IconButton(icon: Icon(Icons.refresh), onPressed: _refreshMap),
+            IconButton(icon: Icon(Icons.settings), onPressed: _onSettingsPressed)
+            //IconButton(icon: Icon(Icons.more_vert), onPressed: _onMenuPressed), // TODO popupmenu
           ],
         ),
         body: Stack(
           children: <Widget>[
-            getMap(),
+            _getMap(),
+            _refreshProgressIndicator(),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Align(
@@ -164,7 +172,21 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  // Creates a marker
+  // Shows a circular progress indicator when the map is refreshing (loading heatspots)
+  Widget _refreshProgressIndicator() {
+    return _refreshInProgess ?
+    Center(child:
+      CircularProgressIndicator()) :
+    Container(height: 0, width: 0);
+//    return Center(child:
+//      SizedBox(
+//        child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Colors.white)),
+//        height: 20,
+//        width: 20,
+//      ));
+  }
+
+  // Creates a marker class
   Future<Marker> _createMarker(Heatspot hs) async {
     final MarkerId mID = MarkerId(hs.id);
     String confidenceText = "Unknown";
@@ -180,7 +202,7 @@ class _MapPageState extends State<MapPage> {
           snippet: "Made by: ${hs.drone.toString()}\n\n${hs.description}"),*/
       position: LatLng(hs.location.latitude, hs.location.longitude),
       icon: await _createMarkerDisplay(confidenceText,
-          hs.drone == DroneType.fixedWing ? CustomIcons.airplane : CustomIcons.helicopter, Colors.blue),//(hs.drone == DroneType.fixedWing) ? fixedwingIcon : multirotorIcon,
+          hs.drone == DroneType.fixedWing ? CustomIcons.airplane : CustomIcons.helicopter, Colors.redAccent),//(hs.drone == DroneType.fixedWing) ? fixedwingIcon : multirotorIcon,
       onTap: () {
         _onMarkerTap(mID);
       },
@@ -188,11 +210,15 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  MapEntry<String, int> _getHighestConfidenceAnimal() {
-
+  // Clears all markers from the map
+  void _clearAllMarkers() {
+    setState(() {
+      _markers.clear();
+      _allMarkers.clear();
+      _markerHeatspots.clear();
+    });
   }
-  bool _fixedWingEnabled = true;
-  bool _multiRotorEnabled = true;
+
   // Toggle the specific drone type markers on the map
   void _toggleDroneTypeMap(final DroneType type) {
     if (type == DroneType.fixedWing)
@@ -218,11 +244,7 @@ class _MapPageState extends State<MapPage> {
     });
   }
   // Add markers to the map
-  Future<void> _addMarkersToMap() async {
-    // Retrieve heatspots from database
-//    List<Heatspot> heatspots = await database.getHeatspots(DroneType.fixedWing);
-//    var temp = await database.getHeatspots(DroneType.multiRotor);
-    List<Heatspot> heatspots = await database.getHeatspots();
+  Future<void> _addHeatspotsToMap(List<Heatspot> heatspots) async {
     // Create set for storage
     Set<Marker> markers = Set();
     // Loop through the loaded heatspots
@@ -236,15 +258,14 @@ class _MapPageState extends State<MapPage> {
       }
     }
     // Add markers on map and rebuild widget
+    _allMarkers.addAll(markers);
     setState(() {
       _markers.addAll(markers);
-      _allMarkers.addAll(markers);
     });
   }
   void _onMapCreated(GoogleMapController controller) {
     _controller.complete(controller);
   }
-
 
   Future<void> _onFixedDronePressed() {
     _toggleDroneTypeMap(DroneType.fixedWing);
@@ -253,6 +274,24 @@ class _MapPageState extends State<MapPage> {
   // Aka Multi rotor
   Future<void> _onQuadDronePressed() {
     _toggleDroneTypeMap(DroneType.multiRotor);
+  }
+
+  Future<void> _refreshMap() async {
+    // TODO refresh markers
+    if (_refreshInProgess) return;
+    setState(() {
+      _refreshInProgess = true;
+    });
+    List<Heatspot> heatspots = await database.getHeatspots();
+    _clearAllMarkers();
+    _addHeatspotsToMap(heatspots);
+    setState(() {
+      _refreshInProgess = false;
+    });
+  }
+
+  Future<void> _onSettingsPressed() {
+    // TODO open settings
   }
   // On marker tap event.
   Future<void> _onMarkerTap(MarkerId id) async {
@@ -264,7 +303,11 @@ class _MapPageState extends State<MapPage> {
     }
     print("Marker tapped and found");
     final heatspot = _markerHeatspots[marker.markerId];
-    Navigator.push(context, MaterialPageRoute(builder: (context) => MarkerPage(heatspot)),);
+    final bool result = await Navigator.push(context, MaterialPageRoute(builder: (context) => MarkerPage(heatspot, _isAdmin)));
+    print("result: $result");
+
+    if (result)
+      await _refreshMap();
   }
 
   // Callback on my location pressed
@@ -343,12 +386,11 @@ class _MapPageState extends State<MapPage> {
       print(e);
     }
   }
-  // This function combines text with an existing icon and merges them.
-  Future<BitmapDescriptor> _createMarkerDisplay(String text, IconData icon, Color iconColor) async {
+  // This function combines text with an icon and merges them.
+  static Future<BitmapDescriptor> _createMarkerDisplay(String text, IconData icon, Color iconColor) async {
     PictureRecorder recorder = new PictureRecorder();
     Canvas c = new Canvas(recorder);
 
-    // Do stuff
     //final icon = Icons.airplanemode_active;
     TextSpan span = new TextSpan(style: new TextStyle(
       color: Colors.white,

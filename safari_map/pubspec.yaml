@@ -33,6 +33,7 @@ dependencies:
   carousel_pro: ^1.0.0
   cached_network_image: ^1.1.1
   photo_view: ^0.5.0
+  flutter_slidable: ^0.5.4
 
 
 dev_dependencies:
@@ -56,6 +57,8 @@ flutter:
     - assets/icons/flutter-icon.png
     - assets/icons/fixed_wing-icon.png
     - assets/icons/multi_rotor-icon.png
+    - assets/icons/safari_live-icon.png
+    - assets/icons/safari_live-icon2.png
 
   fonts:
     - family: SafariMap

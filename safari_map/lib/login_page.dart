@@ -1,6 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safari_map/firebase/authentication.dart';
+import 'package:safari_map/firebase/database.dart';
+import 'package:safari_map/pages/forgot_password_page.dart';
+import 'package:safari_map/pages/photo_inspect_page.dart';
 import 'package:safari_map/utils/resource_strings.dart';
 import 'package:safari_map/utils/text_resource_manager.dart';
 
@@ -76,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
           child: CircleAvatar(
             backgroundColor: Colors.transparent,
             radius: 48.0,
-            child: Image.asset('assets/icons/flutter-icon.png'),
+            child: Image.asset('assets/icons/safari_live-icon2.png'),
           ),
         ));
   }
@@ -152,7 +156,7 @@ class _LoginPageState extends State<LoginPage> {
           elevation: 5.0,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
-          color: Colors.blue,
+          color: Colors.redAccent,
           child: Text(
             'Login',
             style: TextStyle(fontSize: 20.0, color: Colors.white),
@@ -168,9 +172,7 @@ class _LoginPageState extends State<LoginPage> {
     return FlatButton(
       child: Text(ResourceStrings.LOGIN_FORGOT_BUTTON,
           style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300)),
-      onPressed: () {
-        print("\nPressed password");
-      }, // TODO password screen
+      onPressed: _onForgotPasswordPressed, // TODO password screen
     );
   }
 
@@ -213,6 +215,10 @@ class _LoginPageState extends State<LoginPage> {
   }
   // endregion
 
+  void _onForgotPasswordPressed() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => ForgotPasswordPage(widget.auth)));
+  }
+
   // Validate and save form
   bool _validateAndSave() {
     final form = _formKey.currentState;
@@ -246,6 +252,8 @@ class _LoginPageState extends State<LoginPage> {
 
       if (userID != null && userID.length > 0) {
         print('Signed in: $userID');
+        Database db = FirestoreHelper();
+        await db.validateUserPermissions();
         widget.onSignedIn();
       } else {
         _emailPassCombinationSuccess = false;

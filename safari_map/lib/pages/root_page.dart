@@ -34,7 +34,7 @@ class _RootPageState extends State<RootPage> {
         if (user != null) {
           _userID = user?.uid;
         }
-        authState = user?.uid == null ? AuthState.NOT_LOGGED_IN : AuthState.LOGGED_IN;
+        authState = (user == null || user?.uid == null) ? AuthState.NOT_LOGGED_IN : AuthState.LOGGED_IN;
       });
     });
   }

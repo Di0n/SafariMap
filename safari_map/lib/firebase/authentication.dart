@@ -1,14 +1,17 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:safari_map/data/user.dart';
 
 /* Acts as an interface for authentication, so it can be switched to another service in the future if needed.
 * */
 abstract class Auth {
   Future<String> signIn(String email, String password);
 
-  Future<FirebaseUser> getCurrentUser();
+  Future<User> getCurrentUser();
 
   Future<void> signOut();
+
+  Future<void> sendPasswordResetEmail(String email);
 
   Future<bool> isEmailVerified();
 }
@@ -28,9 +31,9 @@ class FirebaseAuthentication implements Auth {
 
   }
 
-  Future<FirebaseUser> getCurrentUser() async {
+  Future<User> getCurrentUser() async {
     FirebaseUser user = await _firebaseAuth.currentUser();
-    return user;
+    return FBUser(user);
   }
 
   Future<void> signOut() async {
@@ -40,6 +43,10 @@ class FirebaseAuthentication implements Auth {
   Future<bool> isEmailVerified() async {
     FirebaseUser user = await _firebaseAuth.currentUser();
     return user.isEmailVerified;
+  }
+
+  Future<void> sendPasswordResetEmail(String email) {
+    return _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 }
 
