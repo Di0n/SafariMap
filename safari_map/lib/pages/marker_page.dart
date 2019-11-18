@@ -62,6 +62,7 @@ class _MarkerPageState extends State<MarkerPage> {
       appBar: AppBar(
         title: Text("Heatspot"),
         actions: <Widget>[
+          _deleteIcon(),
           _editIcon()
         ],
       ),
@@ -99,6 +100,13 @@ class _MarkerPageState extends State<MarkerPage> {
     );
   }
 
+  Widget _deleteIcon() {
+    if (widget._isAdmin) {
+      return IconButton(icon: Icon(Icons.delete), onPressed: _onDeletePressed);
+    } else {
+      return Container(height: 0, width: 0);
+    }
+  }
   Widget _editIcon() {
     if (widget._isAdmin) {
       return IconButton(icon: Icon(Icons.edit), onPressed: _onEditPressed);
@@ -162,6 +170,10 @@ class _MarkerPageState extends State<MarkerPage> {
     // TODO open edit screen
 
     Navigator.push(context, MaterialPageRoute(builder: (context) => EditHeatspotPage(_animals)));
+
+  }
+
+  Future<void> _onDeletePressed() {
 
   }
 }
