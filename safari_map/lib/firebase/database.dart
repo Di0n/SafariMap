@@ -18,6 +18,8 @@ abstract class Database {
   Future<List<Heatspot>> getHeatspots();
   Future<void> validateUserPermissions();
   Future<bool> isAdministrator();
+  Future<void> updateHeatspot(Heatspot hs);
+  Future<void> deleteHeatspot(Heatspot hs);
 }
 
 class FirestoreHelper implements Database {
@@ -68,6 +70,7 @@ class FirestoreHelper implements Database {
     final FBUser user = await auth.getCurrentUser();
 
     var data = {"canEdit":false, "email":user.email};
+
     DocumentReference docref  = _instance.collection(Database.userCollection).document(user.uid);
     DocumentSnapshot doc = await docref.get();
     if (!doc.exists)
@@ -85,5 +88,13 @@ class FirestoreHelper implements Database {
     else return false;
   }
 
+  Future<void> updateHeatspot(Heatspot hs) {
+    DocumentReference docRef = _instance.collection(Database.heatspotCollection).document(hs.id);
+    return docRef.updateData(hs.toFirestoreObject());
+  }
+
+  Future<void> deleteHeatspot(Heatspot hs) {
+    return _instance.collection(Database.heatspotCollection).document(hs.id).delete();
+  }
   // getUserProperties???
 }
