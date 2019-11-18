@@ -25,9 +25,9 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-//
-  //static const LatLng _center = LatLng(-24.475740, 31.390870);
-  static const LatLng _center = LatLng(51.657871, 4.812610);
+  static const LatLng _center = LatLng(-24.707285, 31.535246);
+
+ // static const LatLng _center = LatLng(51.657871, 4.812610);
   static const double _defaultZoom = 17.0;
   static const Size fixedWingIconSize = Size(40, 40);
   static const Size multiRotorIconSize = Size(40, 40);
@@ -46,6 +46,7 @@ class _MapPageState extends State<MapPage> {
   // Database for retrieval of data
   final Database database = FirestoreHelper();
 
+  MapType _mapType = MapType.satellite;
   bool _refreshInProgess = false;
   bool _fixedWingEnabled = true;
   bool _multiRotorEnabled = true;
@@ -55,11 +56,14 @@ class _MapPageState extends State<MapPage> {
   BitmapDescriptor fixedwingIcon;
   BitmapDescriptor multirotorIcon;
   BitmapDescriptor testIcon;
-
+//-24.704070, 31.518554
+  // -24.721397, 31.522221
+  // -24.721735, 31.552851
+  List<LatLng> _points = [LatLng(-24.700528, 31.586871), LatLng(-24.704070, 31.518554), LatLng(-24.721397, 31.522221), LatLng(-24.721735, 31.552851)];
   GoogleMap _getMap() {
     return GoogleMap(
       onMapCreated: _onMapCreated,
-      mapType: MapType.satellite,
+      mapType: _mapType,
       myLocationEnabled: true,
       myLocationButtonEnabled: false,
       trafficEnabled: false,
@@ -68,6 +72,17 @@ class _MapPageState extends State<MapPage> {
       zoomGesturesEnabled: true,
       initialCameraPosition: _startingPosition,
       markers: _markers,
+      compassEnabled: false,
+      polygons: Set<Polygon>.of(<Polygon>[
+        Polygon(
+        polygonId: PolygonId("camp"),
+          points: _points,
+          geodesic: true,
+          strokeColor: Colors.blue,
+          fillColor: Colors.lightBlue.withOpacity(0.1),
+          visible: true
+        )
+      ]),
     );
   }
 
@@ -99,6 +114,19 @@ class _MapPageState extends State<MapPage> {
       backgroundColor: Colors.redAccent,
       child: const Icon(Icons.my_location, size: 36.0),
       heroTag: "my_location_fab",
+    );
+  }
+
+  Widget _mapTypeButton() {
+    return FloatingActionButton(
+      onPressed: () {
+        setState(() {
+          _mapType = (_mapType == MapType.satellite) ? MapType.normal : MapType.satellite;
+        });},
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+      backgroundColor: Colors.redAccent,
+      child: const Icon(Icons.map, size: 36.0),
+      heroTag: "map_type_fab",
     );
   }
 
@@ -163,7 +191,13 @@ class _MapPageState extends State<MapPage> {
               padding: const EdgeInsets.all(16.0),
               child: Align(
                 alignment: Alignment.topLeft,
-                child: _myLocationButton(),
+                child: Column(
+                  children: <Widget>[
+                    _myLocationButton(),
+                    SizedBox(height: 16.0),
+                    _mapTypeButton()
+                  ],
+                ),
               ),
             ),
           ],
@@ -301,10 +335,9 @@ class _MapPageState extends State<MapPage> {
       print("Marker is null");
       return;
     }
-    print("Marker tapped and found");
+
     final heatspot = _markerHeatspots[marker.markerId];
     final bool result = await Navigator.push(context, MaterialPageRoute(builder: (context) => MarkerPage(heatspot, _isAdmin)));
-    print("result: $result");
 
     if (result)
       await _refreshMap();
