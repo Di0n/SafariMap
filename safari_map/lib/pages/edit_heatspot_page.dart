@@ -3,33 +3,35 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:safari_map/data/animal_confidence.dart';
+import 'package:safari_map/data/heatspot.dart';
 import 'package:safari_map/pages/confidence_edit_dialog.dart';
 
 class EditHeatspotPage extends StatefulWidget {
-  List <AnimalConfidence> _animals;
-  EditHeatspotPage(this._animals);
+  List<AnimalConfidence> _animals = List();
+  Heatspot _hs;
+  EditHeatspotPage(this._hs) {
+    _hs.confidenceLevels.forEach((k, v) {
+      _animals.add(AnimalConfidence(animal: k, confidence: v));
+    });
+  }
 
   @override
   State<StatefulWidget> createState() => _EditHeatspotState();
 }
 
 class _EditHeatspotState extends State<EditHeatspotPage> {
-
+  bool _edited = false;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Editing confidence levels'),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Editing confidence levels'),
+        ),
+        body: _buildListView(context),
       ),
-      body: _buildListView(context),
     );
-//    return Scaffold(
-//      appBar: AppBar(
-//        title: Text("Edit heatspot confidence"),
-//
-//      ),
-//      body: _buildListView(),
-//    );
   }
 
   Widget _buildListView(BuildContext ctx) {
@@ -72,9 +74,10 @@ class _EditHeatspotState extends State<EditHeatspotPage> {
                 );
 
                   if (result != ConfidenceEditDialog.cancelled) {
-                    // TODO Save value
+                    _edited = true;
                     setState(() {
                       animal.confidence = result;
+                      widget._hs.confidenceLevels[animal.animal] = result;
                     });
                   }
 
@@ -186,4 +189,10 @@ class _EditHeatspotState extends State<EditHeatspotPage> {
 //      ),
 //    );
   }
+
+  Future<bool> _onWillPop() {
+    Navigator.pop(context, (_edited) ? widget._hs : null);
+    return Future.value(false);
+  }
+
 }
