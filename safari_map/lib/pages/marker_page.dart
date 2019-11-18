@@ -161,7 +161,6 @@ class _MarkerPageState extends State<MarkerPage> {
   Future<void> _onEditPressed() async {
     final Heatspot hs = await Navigator.push(context, MaterialPageRoute(builder: (context) => EditHeatspotPage(widget._hs)));
     if (hs != null) {
-      print("HS is not null");
       var updateOperation = widget._db.updateHeatspot(hs);
       setState(() {
         widget._hs = hs;

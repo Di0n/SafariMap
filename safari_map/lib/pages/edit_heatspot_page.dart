@@ -64,7 +64,6 @@ class _EditHeatspotState extends State<EditHeatspotPage> {
               color: Colors.grey.shade200,
               icon: Icons.edit,
               onTap: () async {
-                print("Tapped edit $index");
                   AnimalConfidence animal = widget._animals[index];
                   final int result = await showDialog(
                   context: ctx,
