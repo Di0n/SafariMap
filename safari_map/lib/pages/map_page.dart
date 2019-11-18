@@ -137,7 +137,7 @@ class _MapPageState extends State<MapPage> {
             "Map",
           ),
           actions: <Widget>[
-            IconButton(icon: Icon(Icons.refresh), onPressed: _onMapRefreshPressed),
+            IconButton(icon: Icon(Icons.refresh), onPressed: _refreshMap),
             IconButton(icon: Icon(Icons.settings), onPressed: _onSettingsPressed)
             //IconButton(icon: Icon(Icons.more_vert), onPressed: _onMenuPressed), // TODO popupmenu
           ],
@@ -276,7 +276,7 @@ class _MapPageState extends State<MapPage> {
     _toggleDroneTypeMap(DroneType.multiRotor);
   }
 
-  Future<void> _onMapRefreshPressed() async {
+  Future<void> _refreshMap() async {
     // TODO refresh markers
     if (_refreshInProgess) return;
     setState(() {
@@ -303,7 +303,11 @@ class _MapPageState extends State<MapPage> {
     }
     print("Marker tapped and found");
     final heatspot = _markerHeatspots[marker.markerId];
-    Navigator.push(context, MaterialPageRoute(builder: (context) => MarkerPage(heatspot, _isAdmin)),);
+    final bool result = await Navigator.push(context, MaterialPageRoute(builder: (context) => MarkerPage(heatspot, _isAdmin)));
+    print("result: $result");
+
+    if (result)
+      await _refreshMap();
   }
 
   // Callback on my location pressed
@@ -383,7 +387,7 @@ class _MapPageState extends State<MapPage> {
     }
   }
   // This function combines text with an icon and merges them.
-  Future<BitmapDescriptor> _createMarkerDisplay(String text, IconData icon, Color iconColor) async {
+  static Future<BitmapDescriptor> _createMarkerDisplay(String text, IconData icon, Color iconColor) async {
     PictureRecorder recorder = new PictureRecorder();
     Canvas c = new Canvas(recorder);
 
