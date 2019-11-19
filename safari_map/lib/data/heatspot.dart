@@ -72,6 +72,17 @@ class Heatspot implements FirestoreObject {
     };
     return data;
   }
+
+//  @override
+//  bool operator==(other) {
+//    if(other is! Heatspot) {
+//      return false;
+//    }
+//    return _id == (other as Heatspot).id;
+//  }
+//
+//  @override
+//  int get hashCode => _id.hashCode;
   static Heatspot getHeatspot(DocumentSnapshot doc) {
     var data = doc.data;
     // TODO Exception if key value does not exist
