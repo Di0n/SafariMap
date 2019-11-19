@@ -7,7 +7,7 @@ import 'package:safari_map/data/animal_confidence.dart';
 class ConfidenceEditDialog extends StatefulWidget {
   static const int cancelled = -1;
   final AnimalConfidence _animalConfidence;
-  ConfidenceEditDialog(this._animalConfidence);
+  ConfidenceEditDialog({AnimalConfidence animalConfidence}) : _animalConfidence = animalConfidence;
 
   @override
   State<StatefulWidget> createState() => _ConfidenceEditState();
@@ -17,13 +17,26 @@ class ConfidenceEditDialog extends StatefulWidget {
 class _ConfidenceEditState extends State<ConfidenceEditDialog> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController _textController;
+  TextEditingController _animalInputController;
   String _errorText;
+  bool isCreating;
+
+
+  @override
+  void initState() {
+    isCreating = widget._animalConfidence == null;
+    _textController = TextEditingController(text: !isCreating ?
+    widget._animalConfidence.confidence.toString() : "");
+
+    if (isCreating)
+      _animalInputController = TextEditingController();
+  }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget._animalConfidence.animal),
-      content: TextFormField(
+      title: Text(!isCreating ? widget._animalConfidence.animal : "Animal"),
+      /*content: TextFormField(
         controller: _textController = TextEditingController(text: widget._animalConfidence.confidence.toString()),
         keyboardType: TextInputType.number,
         maxLines: 1,
@@ -32,11 +45,24 @@ class _ConfidenceEditState extends State<ConfidenceEditDialog> {
         decoration: InputDecoration(
           errorText: _errorText,
         ),
-      ),
-//      content: TextField(
-//        controller: controller,
-//        decoration: InputDecoration(hintText: _animalConfidence.confidence.toString() + "%"),
-//      ),
+      ),*/
+      content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            _animalInputField(),
+            SizedBox(height: 5),
+            TextFormField(
+              controller: _textController,
+              keyboardType: TextInputType.number,
+              maxLines: 1,
+              maxLength: 3,
+              validator: _checkTextInput,
+              decoration: InputDecoration(
+                errorText: _errorText,
+              ),
+            )
+          ],
+        ),
       actions: <Widget>[
         new FlatButton(
           child: Text("Save"),
@@ -60,10 +86,26 @@ class _ConfidenceEditState extends State<ConfidenceEditDialog> {
     );
   }
 
+  Widget _animalInputField() {
+    if (isCreating) {
+      return TextFormField(
+        controller: _animalInputController,
+        keyboardType: TextInputType.text,
+        maxLines: 1,
+        decoration: InputDecoration(
+          errorText: null,
+        ),
+      );
+    } else {
+      return Container(height: 0, width: 0);
+    }
+  }
 
   @override
   void dispose() {
     _textController.dispose();
+    if (_animalInputController != null)
+      _animalInputController.dispose();
     super.dispose();
   }
 
