@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -141,10 +142,11 @@ class _MarkerPageState extends State<MarkerPage> {
 
   Widget _showTimeInfo() {
     final heatspot = widget._hs;
-    DateTime dt = DateTime.now();
+    DateTime dt = heatspot.time.toDate();
+    String dtStr = DateFormat("HH:mm dd-MM-yyyy").format(dt);
     return Padding(
       padding: const EdgeInsets.fromLTRB(_leftEdgeDistance, 5, 0, 0),
-      child: Text("Taken on: " + Util.stringFormat("{0}:{1}, {2}-{3}-{4}.", [dt.hour, dt.minute, dt.day, dt.month, dt.year])),
+      child: Text("Taken on: $dtStr"),
     );
   }
 
@@ -171,6 +173,33 @@ class _MarkerPageState extends State<MarkerPage> {
   }
 
   Future<void> _onDeletePressed() async {
+    final bool result = await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => new AlertDialog(
+        title: Text("Delete heatspot"),
+        content: Text(
+            "Are you sure you want to delete this heatspot?"),
+        actions: <Widget>[
+          FlatButton(
+            child: Text("No"),
+            onPressed: () {
+              Navigator.of(context).pop(false);
+            },
+          ),
+          FlatButton(
+            child: Text("Yes"),
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+          ),
+        ],
+      ),
+    ) ??
+        false;
+
+    if (!result) return;
+
     await widget._db.deleteHeatspot(widget._hs);
     _edited = true;
 
