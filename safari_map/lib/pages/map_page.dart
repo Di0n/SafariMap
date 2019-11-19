@@ -25,16 +25,22 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  static const LatLng _center = LatLng(-24.707285, 31.535246);
+  // Djuma main operating base
+  static const LatLng _baseCampPos = LatLng(-24.707285, 31.535246);
 
  // static const LatLng _center = LatLng(51.657871, 4.812610);
   static const double _defaultZoom = 17.0;
   static const Size fixedWingIconSize = Size(40, 40);
   static const Size multiRotorIconSize = Size(40, 40);
+  static const Size baseCampIconSize = Size(40, 40);
   static final CameraPosition _startingPosition = CameraPosition(
-    target: _center,
+    target: _baseCampPos,
     zoom: _defaultZoom
   );
+
+  final List<LatLng> _areaOfOperations = [
+    LatLng(-24.694520, 31.515300), LatLng(-24.725173, 31.521185),
+    LatLng(-24.727442, 31.553609), LatLng(-24.702151, 31.561845)];
 
   final Completer<GoogleMapController> _controller = Completer();
 
@@ -45,6 +51,8 @@ class _MapPageState extends State<MapPage> {
   final Map<MarkerId, Heatspot> _markerHeatspots = Map();
   // Database for retrieval of data
   final Database database = FirestoreHelper();
+  final MarkerId _baseCampID = MarkerId("BASE_CAMP");
+
 
   MapType _mapType = MapType.satellite;
   bool _refreshInProgess = false;
@@ -55,11 +63,10 @@ class _MapPageState extends State<MapPage> {
 
   BitmapDescriptor fixedwingIcon;
   BitmapDescriptor multirotorIcon;
-  BitmapDescriptor testIcon;
+  BitmapDescriptor baseCampIcon;
 //-24.704070, 31.518554
   // -24.721397, 31.522221
   // -24.721735, 31.552851
-  List<LatLng> _points = [LatLng(-24.700528, 31.586871), LatLng(-24.704070, 31.518554), LatLng(-24.721397, 31.522221), LatLng(-24.721735, 31.552851)];
   GoogleMap _getMap() {
     return GoogleMap(
       onMapCreated: _onMapCreated,
@@ -75,8 +82,8 @@ class _MapPageState extends State<MapPage> {
       compassEnabled: false,
       polygons: Set<Polygon>.of(<Polygon>[
         Polygon(
-        polygonId: PolygonId("camp"),
-          points: _points,
+        polygonId: PolygonId("AO"),
+          points: _areaOfOperations,
           geodesic: true,
           strokeColor: Colors.blue,
           fillColor: Colors.lightBlue.withOpacity(0.1),
@@ -121,7 +128,7 @@ class _MapPageState extends State<MapPage> {
     return FloatingActionButton(
       onPressed: () {
         setState(() {
-          _mapType = (_mapType == MapType.satellite) ? MapType.normal : MapType.satellite;
+          _mapType = (_mapType == MapType.satellite) ? MapType.terrain : MapType.satellite;
         });},
       materialTapTargetSize: MaterialTapTargetSize.padded,
       backgroundColor: Colors.redAccent,
@@ -139,18 +146,28 @@ class _MapPageState extends State<MapPage> {
     BitmapDescriptor.fromAssetImage(ImageConfiguration(size: multiRotorIconSize), "assets/icons/multi_rotor-icon.png").then((onValue) {
       multirotorIcon = onValue;
     });
-    
-//    _createMarkerDisplay("", ).then((onValue) {
-//      testIcon = onValue;
-//    });
+    BitmapDescriptor.fromAssetImage(ImageConfiguration(size: baseCampIconSize), "assets/icons/base_camp-icon.png").then((value) {
+      baseCampIcon = value;
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _onBuilt(context));
   }
-  // Called after widget is build for the first time
+  // Called after widget is built for the first time
   Future<void> _onBuilt(BuildContext context) async {
-    print("onBuilt");
+    print("INFO: Loading user settings.");
     _isAdmin = await database.isAdministrator();
+    print("INFO: Loading heatspots.");
     List<Heatspot> heatspots = await database.getHeatspots();
+    Marker baseCamp = Marker(
+        markerId: _baseCampID,
+        icon: baseCampIcon,
+        position: _baseCampPos,
+        visible: true
+        );
+    _allMarkers.add(baseCamp);
+    setState(() {
+      _markers.add(baseCamp);
+    });
     await _addHeatspotsToMap(heatspots);
   }
 
@@ -244,13 +261,20 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  // Clears all markers from the map
-  void _clearAllMarkers() {
+  // Clears all heatspots from the map and data list
+  void _clearAllHeatspots() {
+    // Verwijder alle heatspot markers
     setState(() {
-      _markers.clear();
-      _allMarkers.clear();
+      _markers.retainWhere((m) {
+        return m.markerId == _baseCampID;
+
+      });
+      _allMarkers.retainWhere((m) {
+        return m.markerId == _baseCampID;
+      });
       _markerHeatspots.clear();
     });
+
   }
 
   // Toggle the specific drone type markers on the map
@@ -265,13 +289,13 @@ class _MapPageState extends State<MapPage> {
       if (!val) {
         _markers.removeWhere((m) {
           final Heatspot hs = _markerHeatspots[m.markerId];
-          return hs.drone == type;
+          return hs == null ? false : hs.drone == type;
         });
       }
       else {
         var set = _allMarkers.where((m) {
           final Heatspot hs = _markerHeatspots[m.markerId];
-          return hs.drone == type;
+          return hs == null ? false : hs.drone == type;
         }).toSet();
         _markers.addAll(set);
       }
@@ -317,8 +341,8 @@ class _MapPageState extends State<MapPage> {
       _refreshInProgess = true;
     });
     List<Heatspot> heatspots = await database.getHeatspots();
-    _clearAllMarkers();
-    _addHeatspotsToMap(heatspots);
+    _clearAllHeatspots();
+    await _addHeatspotsToMap(heatspots);
     setState(() {
       _refreshInProgess = false;
     });
