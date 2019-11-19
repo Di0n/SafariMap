@@ -30,6 +30,8 @@ class _EditHeatspotState extends State<EditHeatspotPage> {
           title: Text('Editing confidence levels'),
         ),
         body: _buildListView(context),
+        floatingActionButton: _addButton(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
     );
   }
@@ -68,7 +70,7 @@ class _EditHeatspotState extends State<EditHeatspotPage> {
                   final int result = await showDialog(
                   context: ctx,
                   builder: (BuildContext bContext) => ConfidenceEditDialog(
-                    animal
+                    animalConfidence: animal
                   )
                 );
 
@@ -189,6 +191,20 @@ class _EditHeatspotState extends State<EditHeatspotPage> {
 //    );
   }
 
+  Widget _addButton() {
+    return FloatingActionButton(
+      onPressed: () async {
+        final int result = await showDialog(
+            context: context,
+            builder: (BuildContext bContext) => ConfidenceEditDialog()
+        );
+      },
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+      backgroundColor: Colors.redAccent,
+      child: const Icon(Icons.add, color: Colors.black),
+      heroTag: "add_animal_conf_fab",
+    );
+  }
   Future<bool> _onWillPop() {
     Navigator.pop(context, (_edited) ? widget._hs : null);
     return Future.value(false);
