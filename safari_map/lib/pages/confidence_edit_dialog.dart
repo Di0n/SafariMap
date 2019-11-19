@@ -16,7 +16,7 @@ class ConfidenceEditDialog extends StatefulWidget {
 
 class _ConfidenceEditState extends State<ConfidenceEditDialog> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController _textController;
+  TextEditingController _confidenceInputController;
   TextEditingController _animalInputController;
   String _errorText;
   bool isCreating;
@@ -25,11 +25,12 @@ class _ConfidenceEditState extends State<ConfidenceEditDialog> {
   @override
   void initState() {
     isCreating = widget._animalConfidence == null;
-    _textController = TextEditingController(text: !isCreating ?
+    _confidenceInputController = TextEditingController(text: !isCreating ?
     widget._animalConfidence.confidence.toString() : "");
 
     if (isCreating)
       _animalInputController = TextEditingController();
+    super.initState();
   }
 
   @override
@@ -37,7 +38,7 @@ class _ConfidenceEditState extends State<ConfidenceEditDialog> {
     return AlertDialog(
       title: Text(!isCreating ? widget._animalConfidence.animal : "Animal"),
       /*content: TextFormField(
-        controller: _textController = TextEditingController(text: widget._animalConfidence.confidence.toString()),
+        controller: _confidenceInputController = TextEditingController(text: widget._animalConfidence.confidence.toString()),
         keyboardType: TextInputType.number,
         maxLines: 1,
         maxLength: 3,
@@ -52,7 +53,7 @@ class _ConfidenceEditState extends State<ConfidenceEditDialog> {
             _animalInputField(),
             SizedBox(height: 5),
             TextFormField(
-              controller: _textController,
+              controller: _confidenceInputController,
               keyboardType: TextInputType.number,
               maxLines: 1,
               maxLength: 3,
@@ -68,10 +69,21 @@ class _ConfidenceEditState extends State<ConfidenceEditDialog> {
           child: Text("Save"),
           onPressed: () {
             setState(() {
-              _errorText = _checkTextInput(_textController.text);
+              _errorText = _checkTextInput(_confidenceInputController.text);
             });
             if (_errorText == null) {
-              Navigator.of(context).pop(int.parse(_textController.text));
+              if (!isCreating) {
+                final int newConfidence = int.parse(_confidenceInputController.text);
+                AnimalConfidence ac = AnimalConfidence(
+                    animal: widget._animalConfidence.animal, confidence: newConfidence);
+                Navigator.of(context).pop(ac);
+              } else {
+                final String animal = _animalInputController.text;
+                final int confidence = int.parse(_confidenceInputController.text);
+
+                AnimalConfidence ac = AnimalConfidence(animal: animal, confidence: confidence);
+                Navigator.of(context).pop(ac);
+              }
             }
           },
 
@@ -79,7 +91,7 @@ class _ConfidenceEditState extends State<ConfidenceEditDialog> {
         new FlatButton(
           child: Text("Cancel"),
           onPressed: (){
-            Navigator.of(context).pop(ConfidenceEditDialog.cancelled);
+            Navigator.of(context).pop(null);
           },
         )
       ],
@@ -103,7 +115,7 @@ class _ConfidenceEditState extends State<ConfidenceEditDialog> {
 
   @override
   void dispose() {
-    _textController.dispose();
+    _confidenceInputController.dispose();
     if (_animalInputController != null)
       _animalInputController.dispose();
     super.dispose();

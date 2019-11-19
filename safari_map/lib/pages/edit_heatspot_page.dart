@@ -46,7 +46,7 @@ class _EditHeatspotState extends State<EditHeatspotPage> {
       itemBuilder: (context, index) {
         //if (index.isOdd) return Divider();
         return Slidable(
-          key: ValueKey(index),
+          key: UniqueKey(),
           actionPane: SlidableDrawerActionPane(),
 //          actions: <Widget>[
 //          IconSlideAction(
@@ -66,19 +66,18 @@ class _EditHeatspotState extends State<EditHeatspotPage> {
               color: Colors.grey.shade200,
               icon: Icons.edit,
               onTap: () async {
-                  AnimalConfidence animal = widget._animals[index];
-                  final int result = await showDialog(
+                  AnimalConfidence ac = widget._animals[index];
+                  final AnimalConfidence result = await showDialog(
                   context: ctx,
                   builder: (BuildContext bContext) => ConfidenceEditDialog(
-                    animalConfidence: animal
+                    animalConfidence: ac
                   )
                 );
-
-                  if (result != ConfidenceEditDialog.cancelled) {
+                  // widget._hs.confidenceLevels[animal.animal] = result
+                  if (result != null) {
                     _edited = true;
                     setState(() {
-                      animal.confidence = result;
-                      widget._hs.confidenceLevels[animal.animal] = result;
+                      widget._hs.confidenceLevels[result.animal] = result.confidence;
                     });
                   }
 
@@ -94,7 +93,12 @@ class _EditHeatspotState extends State<EditHeatspotPage> {
           dismissal: SlidableDismissal(
             child: SlidableDrawerDismissal(),
             onDismissed: (SlideActionType t) {
-              widget._animals.removeAt(index);
+              _edited = true;
+
+              setState(() {
+                AnimalConfidence removedAc = widget._animals.removeAt(index);
+                widget._hs.confidenceLevels.remove(removedAc.animal);
+              });
             },
           ),
           child: ListTile(
@@ -194,10 +198,17 @@ class _EditHeatspotState extends State<EditHeatspotPage> {
   Widget _addButton() {
     return FloatingActionButton(
       onPressed: () async {
-        final int result = await showDialog(
+        final AnimalConfidence result = await showDialog(
             context: context,
             builder: (BuildContext bContext) => ConfidenceEditDialog()
         );
+
+        if (result != null) {
+          _edited = true;
+          setState(() {
+            widget._hs.confidenceLevels.putIfAbsent(result.animal, ()=> result.confidence);
+          });
+        }
       },
       materialTapTargetSize: MaterialTapTargetSize.padded,
       backgroundColor: Colors.redAccent,
