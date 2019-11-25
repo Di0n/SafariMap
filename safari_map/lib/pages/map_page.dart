@@ -11,6 +11,7 @@ import 'package:safari_map/firebase/authentication.dart';
 import 'package:safari_map/firebase/database.dart';
 import 'package:safari_map/data/enums.dart';
 import 'package:safari_map/pages/marker_page.dart';
+import 'package:safari_map/pages/settings_page.dart';
 import 'package:safari_map/utils/icons.dart';
 
 class MapPage extends StatefulWidget {
@@ -85,8 +86,8 @@ class _MapPageState extends State<MapPage> {
         polygonId: PolygonId("AO"),
           points: _areaOfOperations,
           geodesic: true,
-          strokeColor: Colors.blue,
-          fillColor: Colors.lightBlue.withOpacity(0.1),
+          strokeColor: Colors.white,
+          fillColor: Colors.white.withOpacity(0.1),
           visible: true
         )
       ]),
@@ -351,6 +352,7 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> _onSettingsPressed() {
     // TODO open settings
+    Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage()));
   }
   // On marker tap event.
   Future<void> _onMarkerTap(MarkerId id) async {
