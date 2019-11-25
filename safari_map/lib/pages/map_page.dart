@@ -182,6 +182,7 @@ class _MapPageState extends State<MapPage> {
             "Map",
           ),
           actions: <Widget>[
+            IconButton(icon: Icon(Icons.exit_to_app), onPressed: _onBackPressed),
             IconButton(icon: Icon(Icons.refresh), onPressed: _refreshMap),
             IconButton(icon: Icon(Icons.settings), onPressed: _onSettingsPressed)
             //IconButton(icon: Icon(Icons.more_vert), onPressed: _onMenuPressed), // TODO popupmenu
