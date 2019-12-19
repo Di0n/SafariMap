@@ -7,7 +7,7 @@ import 'package:safari_map/data/animal_confidence.dart';
 class ConfidenceEditDialog extends StatefulWidget {
   static const int cancelled = -1;
   final AnimalConfidence _animalConfidence;
-  ConfidenceEditDialog(this._animalConfidence);
+  ConfidenceEditDialog({AnimalConfidence animalConfidence}) : _animalConfidence = animalConfidence;
 
   @override
   State<StatefulWidget> createState() => _ConfidenceEditState();
@@ -16,15 +16,29 @@ class ConfidenceEditDialog extends StatefulWidget {
 
 class _ConfidenceEditState extends State<ConfidenceEditDialog> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController _textController;
+  TextEditingController _confidenceInputController;
+  TextEditingController _animalInputController;
   String _errorText;
+  bool isCreating;
+
+
+  @override
+  void initState() {
+    isCreating = widget._animalConfidence == null;
+    _confidenceInputController = TextEditingController(text: !isCreating ?
+    widget._animalConfidence.confidence.toString() : "");
+
+    if (isCreating)
+      _animalInputController = TextEditingController();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget._animalConfidence.animal),
-      content: TextFormField(
-        controller: _textController = TextEditingController(text: widget._animalConfidence.confidence.toString()),
+      title: Text(!isCreating ? widget._animalConfidence.animal : "Animal"),
+      /*content: TextFormField(
+        controller: _confidenceInputController = TextEditingController(text: widget._animalConfidence.confidence.toString()),
         keyboardType: TextInputType.number,
         maxLines: 1,
         maxLength: 3,
@@ -32,20 +46,44 @@ class _ConfidenceEditState extends State<ConfidenceEditDialog> {
         decoration: InputDecoration(
           errorText: _errorText,
         ),
-      ),
-//      content: TextField(
-//        controller: controller,
-//        decoration: InputDecoration(hintText: _animalConfidence.confidence.toString() + "%"),
-//      ),
+      ),*/
+      content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            _animalInputField(),
+            SizedBox(height: 5),
+            TextFormField(
+              controller: _confidenceInputController,
+              keyboardType: TextInputType.number,
+              maxLines: 1,
+              maxLength: 3,
+              validator: _checkTextInput,
+              decoration: InputDecoration(
+                errorText: _errorText,
+              ),
+            )
+          ],
+        ),
       actions: <Widget>[
         new FlatButton(
           child: Text("Save"),
           onPressed: () {
             setState(() {
-              _errorText = _checkTextInput(_textController.text);
+              _errorText = _checkTextInput(_confidenceInputController.text);
             });
             if (_errorText == null) {
-              Navigator.of(context).pop(int.parse(_textController.text));
+              if (!isCreating) {
+                final int newConfidence = int.parse(_confidenceInputController.text);
+                AnimalConfidence ac = AnimalConfidence(
+                    animal: widget._animalConfidence.animal, confidence: newConfidence);
+                Navigator.of(context).pop(ac);
+              } else {
+                final String animal = _animalInputController.text;
+                final int confidence = int.parse(_confidenceInputController.text);
+
+                AnimalConfidence ac = AnimalConfidence(animal: animal, confidence: confidence);
+                Navigator.of(context).pop(ac);
+              }
             }
           },
 
@@ -53,17 +91,33 @@ class _ConfidenceEditState extends State<ConfidenceEditDialog> {
         new FlatButton(
           child: Text("Cancel"),
           onPressed: (){
-            Navigator.of(context).pop(ConfidenceEditDialog.cancelled);
+            Navigator.of(context).pop(null);
           },
         )
       ],
     );
   }
 
+  Widget _animalInputField() {
+    if (isCreating) {
+      return TextFormField(
+        controller: _animalInputController,
+        keyboardType: TextInputType.text,
+        maxLines: 1,
+        decoration: InputDecoration(
+          errorText: null,
+        ),
+      );
+    } else {
+      return Container(height: 0, width: 0);
+    }
+  }
 
   @override
   void dispose() {
-    _textController.dispose();
+    _confidenceInputController.dispose();
+    if (_animalInputController != null)
+      _animalInputController.dispose();
     super.dispose();
   }
 
