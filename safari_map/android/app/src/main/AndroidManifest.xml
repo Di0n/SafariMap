@@ -11,8 +11,8 @@
 
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="safari_map"
-        android:icon="@mipmap/ic_launcher">
+        android:label="Safari Map"
+        android:icon="@mipmap/launcher_icon">
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
